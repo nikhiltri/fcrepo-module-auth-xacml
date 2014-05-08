@@ -33,6 +33,10 @@ public abstract class URIConstants {
     public static final URI ATTRIBUTEID_SUBJECT_ID = URI
             .create(XACMLConstants.ATTRIBUTEID_SUBJECT_ID);
 
+    public static final String FCREPO_SUBJECT_ROLE_VALUE = "fcrepo-xacml:subject-role";
+
+    public static final URI FCREPO_SUBJECT_ROLE = URI.create(FCREPO_SUBJECT_ROLE_VALUE);
+
     /**
      * ID of the action (ModeShape permission name).
      */
@@ -56,5 +60,9 @@ public abstract class URIConstants {
      */
     public static final URI ATTRIBUTEID_RESOURCE_SCOPE = URI
             .create("urn:oasis:names:tc:xacml:1.0:resource:scope");
+
+    public static final String XACML_POLICY_PROPERTY = "authz:policy";
+
+    public static final String POLICY_URI_PREFIX = "fcrepo:";
 
 }
