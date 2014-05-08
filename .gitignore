@@ -9,3 +9,5 @@ release.properties
 .metadata
 .DS_Store
 *~
+fcrepo4-data
+.checkstyle

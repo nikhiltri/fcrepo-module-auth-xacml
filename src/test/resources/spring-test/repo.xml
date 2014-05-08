@@ -8,8 +8,9 @@
   <!-- Context that supports the actual ModeShape JCR itself -->
 
   <context:annotation-config />
-  
+
   <context:component-scan base-package="org.fcrepo.kernel.services" />
+  <context:component-scan base-package="org.fcrepo.auth.xacml" />
 
   <bean name="modeshapeRepofactory" class="org.fcrepo.kernel.spring.ModeShapeRepositoryFactoryBean"
     depends-on="authenticationProvider">
@@ -19,8 +20,6 @@
   <bean name="authenticationProvider" class="org.fcrepo.auth.common.ServletContainerAuthenticationProvider">
     <property name="fad" ref="fad"/>
   </bean>
-  
-  <bean name="fad" class="org.fcrepo.auth.roles.basic.BasicRolesAuthorizationDelegate"/>
 
   <bean class="org.modeshape.jcr.JcrRepositoryFactory" />
 
