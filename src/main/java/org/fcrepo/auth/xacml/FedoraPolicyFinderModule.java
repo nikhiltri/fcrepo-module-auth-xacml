@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
  * Locates a policy in ModeShape by evaluation context or by URI.
  * @author Gregory Jansen
  */
-@Component
+@Component("fedoraPolicyFinderModule")
 public class FedoraPolicyFinderModule extends PolicyFinderModule {
 
     /*

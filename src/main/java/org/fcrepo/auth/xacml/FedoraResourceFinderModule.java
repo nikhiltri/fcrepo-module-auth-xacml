@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  * Locates resources that are subordinate to a Fedora resource.
  * @author Gregory Jansen
  */
-@Component
+@Component("fedoraResourceFinderModule")
 public class FedoraResourceFinderModule extends ResourceFinderModule {
 
     /*

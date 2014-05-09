@@ -6,7 +6,6 @@
     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
   <!-- Context that supports the actual ModeShape JCR itself -->
-
   <context:annotation-config />
 
   <context:component-scan base-package="org.fcrepo.kernel.services" />
@@ -20,6 +19,13 @@
   <bean name="authenticationProvider" class="org.fcrepo.auth.common.ServletContainerAuthenticationProvider">
     <property name="fad" ref="fad"/>
   </bean>
+
+  <bean name="pdp" class="org.jboss.security.xacml.sunxacml.PDP" factory-bean="pdpFactory" factory-method="makePDP">
+    <constructor-arg ref="fedoraPolicyFinderModule"/>
+    <constructor-arg ref="fedoraResourceFinderModule"/>
+  </bean>
+
+  <bean name="pdpFactory" class="org.fcrepo.auth.xacml.PDPFactoryBean"/>
 
   <bean class="org.modeshape.jcr.JcrRepositoryFactory" />
 
