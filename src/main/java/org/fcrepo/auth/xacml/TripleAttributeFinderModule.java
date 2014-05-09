@@ -16,15 +16,17 @@
 package org.fcrepo.auth.xacml;
 
 import java.net.URI;
-import java.util.Collections;
 import java.util.Set;
 
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
-import org.jboss.security.xacml.sunxacml.attr.AttributeDesignator;
 import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
 import org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
+
+import static java.util.Collections.singleton;
+import static java.util.Collections.unmodifiableSet;
+import static org.jboss.security.xacml.sunxacml.attr.AttributeDesignator.RESOURCE_TARGET;
 
 
 /**
@@ -40,16 +42,14 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
     /**
      * Supported designator types.
      */
-    private static final Set<Integer> DESIGNATOR_TYPES = Collections
-            .unmodifiableSet(Collections
-                    .singleton(AttributeDesignator.RESOURCE_TARGET));
+    private static final Set<Integer> DESIGNATOR_TYPES = unmodifiableSet(singleton(RESOURCE_TARGET));
 
     /**
      * Supports designators.
      *
-     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#
-     *      isDesignatorSupported()
      * @return if designator is supported.
+     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#
+     * isDesignatorSupported()
      */
     @Override
     public final boolean isDesignatorSupported() {
@@ -58,9 +58,10 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
 
     /**
      * Supports selectors.
-     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#
-     *      isSelectorSupported()
+     *
      * @return if selector is supported
+     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#
+     * isSelectorSupported()
      */
     @Override
     public final boolean isSelectorSupported() {
@@ -70,9 +71,8 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
     /**
      * Supports resource attributes.
      *
-     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#
-     *      getSupportedDesignatorTypes()
      * @return the supported designator types.
+     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#getSupportedDesignatorTypes()
      */
     @Override
     public final Set<Integer> getSupportedDesignatorTypes() {
@@ -83,9 +83,8 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
      * This finder will try to resolve resource attributes with any ID.
      * (non-Javadoc)
      *
-     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#
-     *      getSupportedIds()
      * @return that any attribute ID is supported (null)
+     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#getSupportedIds()
      */
     @Override
     public final Set<?> getSupportedIds() {
@@ -94,36 +93,47 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
 
     /**
      * Finds the matching triples values.
-     * @see
-     * org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#findAttribute
+     *
+     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#findAttribute
      * (java.net.URI, java.net.URI, java.net.URI, java.net.URI,
      * org.jboss.security.xacml.sunxacml.EvaluationCtx, int)
      */
     @Override
     public final EvaluationResult findAttribute(final URI attributeType,
-            final URI attributeId, final URI issuer, final URI subjectCategory,
-            final EvaluationCtx context, final int designatorType) {
+                                                final URI attributeId,
+                                                final URI issuer,
+                                                final URI subjectCategory,
+                                                final EvaluationCtx context,
+                                                final int designatorType) {
         // TODO Auto-generated method stub
-        return super.findAttribute(attributeType, attributeId, issuer,
-                subjectCategory, context, designatorType);
+        return super.findAttribute(attributeType,
+                                   attributeId,
+                                   issuer,
+                                   subjectCategory,
+                                   context,
+                                   designatorType);
     }
 
     /**
      * Finds the matching triple values.
      *
-     * @see
-     * org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#findAttribute
-     *      (java.lang.String, org.w3c.dom.Node, java.net.URI,
-     *      org.jboss.security.xacml.sunxacml.EvaluationCtx, java.lang.String)
      * @return the attribute values
+     * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#findAttribute
+     * (java.lang.String, org.w3c.dom.Node, java.net.URI,
+     * org.jboss.security.xacml.sunxacml.EvaluationCtx, java.lang.String)
      */
     @Override
     public final EvaluationResult findAttribute(final String contextPath,
-            final Node namespaceNode, final URI attributeType,
-            final EvaluationCtx context, final String xpathVersion) {
+                                                final Node namespaceNode,
+                                                final URI attributeType,
+                                                final EvaluationCtx context,
+                                                final String xpathVersion) {
         // TODO Auto-generated method stub
-        return super.findAttribute(contextPath, namespaceNode, attributeType,
-                context, xpathVersion);
+        return super.findAttribute(contextPath,
+                                   namespaceNode,
+                                   attributeType,
+                                   context,
+                                   xpathVersion);
     }
 
 }
