@@ -49,7 +49,7 @@ public class FedoraResourceFinderModule extends ResourceFinderModule {
      * Fedora's ModeShape session factory.
      */
     @Autowired
-    private SessionFactory sessionFactory;
+    protected SessionFactory sessionFactory;
 
     /*
      * Does find child resources.
@@ -110,7 +110,7 @@ public class FedoraResourceFinderModule extends ResourceFinderModule {
             final Session session = sessionFactory.getInternalSession();
             final Node node = session.getNode( parent.getValue().toString() );
             final Set<String> children = new HashSet<String>();
-            findChildren( node, children, false );
+            findChildren( node, children, recurse );
             return new ResourceFinderResult( children );
         } catch ( RepositoryException ex ) {
             final HashMap errors = new HashMap();
