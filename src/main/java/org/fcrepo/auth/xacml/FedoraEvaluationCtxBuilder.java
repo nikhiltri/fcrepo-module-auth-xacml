@@ -1,0 +1,178 @@
+/**
+ * Copyright 2014 DuraSpace, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.fcrepo.auth.xacml;
+
+import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_ACTION_ID;
+import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_RESOURCE_ID;
+import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_RESOURCE_SCOPE;
+import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_RESOURCE_WORKSPACE;
+import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_SUBJECT_ID;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import org.jboss.security.xacml.sunxacml.BasicEvaluationCtx;
+import org.jboss.security.xacml.sunxacml.EvaluationCtx;
+import org.jboss.security.xacml.sunxacml.ParsingException;
+import org.jboss.security.xacml.sunxacml.attr.StringAttribute;
+import org.jboss.security.xacml.sunxacml.ctx.Attribute;
+import org.jboss.security.xacml.sunxacml.ctx.RequestCtx;
+import org.jboss.security.xacml.sunxacml.ctx.Subject;
+import org.jboss.security.xacml.sunxacml.finder.AttributeFinder;
+import org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule;
+
+
+/**
+ * @author Gregory Jansen
+ *
+ */
+public class FedoraEvaluationCtxBuilder {
+
+    /**
+     * Create an evaluation context builder.
+     */
+    public FedoraEvaluationCtxBuilder() {
+
+    }
+
+    /**
+     * Build the evaluation context.
+     *
+     * @return the evaluation context
+     */
+    public final EvaluationCtx build() {
+        final RequestCtx rc =
+                new RequestCtx(subjectList, resourceList, actionList,
+                        environmentList);
+        final AttributeFinder af = new AttributeFinder();
+        af.setModules(attributeFinderModules);
+        try {
+            return new BasicEvaluationCtx(rc, af);
+        } catch (final ParsingException e) {
+            throw new Error(e);
+        }
+    }
+
+    /**
+     * The list of other subjects.
+     */
+    private final List<Subject> subjectList = new ArrayList<Subject>();
+
+    /**
+     * This list of resource attributes.
+     */
+    private final List<Attribute> resourceList = new ArrayList<Attribute>();
+
+    /**
+     * This list of action attributes.
+     */
+    private final List<Attribute> actionList = new ArrayList<Attribute>();
+
+    /**
+     * This list of environment attributes.
+     */
+    private final List<Attribute> environmentList = new ArrayList<Attribute>();
+
+    /**
+     * The list of attribute finder modules.
+     */
+    private final List<AttributeFinderModule> attributeFinderModules =
+            new ArrayList<AttributeFinderModule>();
+
+    /**
+     * Add a finder module to context.
+     *
+     * @param module module to add
+     * @return the builder
+     */
+    public final FedoraEvaluationCtxBuilder addFinderModule(
+            final AttributeFinderModule module) {
+        this.attributeFinderModules.add(module);
+        return this;
+    }
+
+    /**
+     * Adds a basic Fedora subject to the context.
+     *
+     * @param username the user principal name, or null
+     * @param roles the effective roles for user, or null
+     * @return the builder
+     */
+    public final FedoraEvaluationCtxBuilder addSubject(final String username,
+            final Set<String> roles) {
+        final List<Attribute> subjectAttrs = new ArrayList<Attribute>();
+        // user principal => subject-id
+        final StringAttribute v = new StringAttribute(username);
+        final Attribute sid =
+                new Attribute(ATTRIBUTEID_SUBJECT_ID, null, null, v);
+        subjectAttrs.add(sid);
+        // TODO roles => role
+        this.subjectList.add(new Subject(subjectAttrs));
+        return this;
+    }
+
+    /**
+     * Add the node or property path as resource ID.
+     *
+     * @param path the path to the node or property
+     * @return the builder
+     */
+    public final FedoraEvaluationCtxBuilder addResourceID(final String path) {
+        final Attribute rid =
+                new Attribute(ATTRIBUTEID_RESOURCE_ID, null, null,
+                        new StringAttribute(path));
+        resourceList.add(rid);
+        return this;
+    }
+
+    /**
+     * Add the workspace name.
+     *
+     * @param name name of workspace
+     * @return the builder
+     */
+    public final FedoraEvaluationCtxBuilder addWorkspace(final String name) {
+        final Attribute wid =
+                new Attribute(ATTRIBUTEID_RESOURCE_WORKSPACE, null, null,
+                        new StringAttribute(name));
+        resourceList.add(wid);
+        return this;
+    }
+
+    /**
+     * Adds actions as action ID and modify resource scope to handle remove.
+     *
+     * @param actions the requested actions
+     * @return the builder
+     */
+    public final FedoraEvaluationCtxBuilder addActions(final String[] actions) {
+        for (final String action : actions) {
+            final Attribute a =
+                    new Attribute(ATTRIBUTEID_ACTION_ID, null, null,
+                            new StringAttribute(action));
+            actionList.add(a);
+            if ("remove".equals(action)) {
+                final Attribute scope =
+                        new Attribute(ATTRIBUTEID_RESOURCE_SCOPE, null, null,
+                                new StringAttribute("Descendants"));
+                resourceList.add(scope);
+            }
+        }
+        return this;
+    }
+
+}

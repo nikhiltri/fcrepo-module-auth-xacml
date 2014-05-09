@@ -16,14 +16,7 @@
 
 package org.fcrepo.auth.xacml;
 
-import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_ACTION_ID;
-import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_RESOURCE_ID;
-import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_RESOURCE_SCOPE;
-import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_RESOURCE_WORKSPACE;
-import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_SUBJECT_ID;
-
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -38,17 +31,10 @@ import org.fcrepo.auth.common.FedoraAuthorizationDelegate;
 import org.fcrepo.auth.roles.common.AccessRolesProvider;
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
-import org.jboss.security.xacml.sunxacml.BasicEvaluationCtx;
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.PDP;
-import org.jboss.security.xacml.sunxacml.ParsingException;
-import org.jboss.security.xacml.sunxacml.attr.StringAttribute;
-import org.jboss.security.xacml.sunxacml.ctx.Attribute;
-import org.jboss.security.xacml.sunxacml.ctx.RequestCtx;
 import org.jboss.security.xacml.sunxacml.ctx.ResponseCtx;
 import org.jboss.security.xacml.sunxacml.ctx.Result;
-import org.jboss.security.xacml.sunxacml.ctx.Subject;
-import org.jboss.security.xacml.sunxacml.finder.AttributeFinder;
 import org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule;
 import org.jboss.security.xacml.sunxacml.finder.impl.CurrentEnvModule;
 import org.modeshape.jcr.value.Path;
@@ -185,91 +171,6 @@ public class XACMLAuthorizationDelegate implements FedoraAuthorizationDelegate,
     }
 
     /**
-     * Builds a XACML request from ModeShape parameters and Fedora roles.
-     *
-     * @param session the ModeShape session
-     * @param absPath the path to the resource node
-     * @param actions the actions requested
-     * @param roles the effective roles for this session/path
-     * @param subjectAttributeFinder
-     * @return a XACML request context
-     */
-    private RequestCtx getRequestContext(final Session session,
-            final Path absPath, final String[] actions,
-            final Set<String> roles) {
-        final List<Subject> subjectList =
-                Collections.singletonList(getSubject(session, roles));
-        final List<Attribute> resourceList =
-                getResourceAttributes(session, absPath);
-        final List<Attribute> actionList = new ArrayList<Attribute>();
-        for (final String action : actions) {
-            final Attribute a =
-                    new Attribute(ATTRIBUTEID_ACTION_ID,
-                            null, null, new StringAttribute(action));
-            actionList.add(a);
-            if ("remove".equals(action)) {
-                final Attribute scope =
-                        new Attribute(ATTRIBUTEID_RESOURCE_SCOPE, null, null,
-                                new StringAttribute("Descendants"));
-                resourceList.add(scope);
-            }
-        }
-        final List<Attribute> environmentList = Collections.emptyList();
-        return new RequestCtx(subjectList, resourceList, actionList,
-                environmentList);
-    }
-
-    /**
-     * Adds resource attributes to the request.
-     *
-     * @param session the ModeShape session
-     * @param absPath the path to the node or propery
-     * @return a list of resource attributes
-     */
-    private List<Attribute> getResourceAttributes(final Session session,
-            final Path absPath) {
-        final List<Attribute> result = new ArrayList<Attribute>();
-        // resource id
-        final Attribute rid =
-                new Attribute(ATTRIBUTEID_RESOURCE_ID, null,
-                        null, new StringAttribute(absPath.getString()));
-        result.add(rid);
-        // workspace id
-        final Attribute wid =
-                new Attribute(ATTRIBUTEID_RESOURCE_WORKSPACE, null, null,
-                        new StringAttribute(
-                        session.getWorkspace().getName()));
-        result.add(wid);
-        return result;
-    }
-
-    /**
-     * Builds the XACML request subject.
-     *
-     * @param session ModeShape session
-     * @param roles Fedora roles
-     * @return a populated XACML Subject
-     */
-    private Subject getSubject(final Session session, final Set<String> roles) {
-        // build subject
-        final List<Attribute> subjectAttrs = new ArrayList<Attribute>();
-
-        {
-            // user principal => subject-id
-            final Principal user =
-                    (Principal) session.getAttribute(FEDORA_USER_PRINCIPAL);
-            final StringAttribute v = new StringAttribute(user.getName());
-            final Attribute sid =
-                    new Attribute(ATTRIBUTEID_SUBJECT_ID,
-                            null, null, v);
-            subjectAttrs.add(sid);
-        }
-
-        // roles => role
-        return new Subject(subjectAttrs);
-    }
-
-    /**
      * @param session modeshape session
      * @param absPath node path
      * @return effective content roles for session
@@ -310,12 +211,10 @@ public class XACMLAuthorizationDelegate implements FedoraAuthorizationDelegate,
      */
     private EvaluationCtx buildEvaluationContext(final Session session,
             final Path absPath, final String[] actions) {
-        EvaluationCtx result = null;
-        AttributeFinder myAttributeFinder = null;
-        final List<AttributeFinderModule> attributeFinderModules =
-                new ArrayList<AttributeFinderModule>();
-        attributeFinderModules.add(currentEnvironmentAttributeModule);
-        attributeFinderModules.add(sparqlResourceAttributeFinderModule);
+        final FedoraEvaluationCtxBuilder builder =
+                new FedoraEvaluationCtxBuilder();
+        builder.addFinderModule(currentEnvironmentAttributeModule);
+        builder.addFinderModule(sparqlResourceAttributeFinderModule);
 
         // A subject attribute finder prototype is injected with Session
         AttributeFinderModule subjectAttributeFinder = null;
@@ -324,36 +223,32 @@ public class XACMLAuthorizationDelegate implements FedoraAuthorizationDelegate,
             subjectAttributeFinder =
                     (AttributeFinderModule) applicationContext.getBean(
                             SUBJECT_ATTRIBUTE_FINDER_BEAN, session);
-            attributeFinderModules.add(subjectAttributeFinder);
+            builder.addFinderModule(subjectAttributeFinder);
         }
 
-        // Additional environment attribute finder is injected with Session
+        // environment attribute finder is injected with Session
         AttributeFinderModule environmentAttributeFinder = null;
         if (applicationContext
                 .containsBeanDefinition(ENVIRONMENT_ATTRIBUTE_FINDER_BEAN)) {
             environmentAttributeFinder =
                     (AttributeFinderModule) applicationContext.getBean(
                             ENVIRONMENT_ATTRIBUTE_FINDER_BEAN, session);
-            attributeFinderModules.add(environmentAttributeFinder);
+            builder.addFinderModule(environmentAttributeFinder);
         }
 
         // Triple attribute finder will look in modeshape for any valid
         // predicate URI, therefore it falls last in this list.
-        attributeFinderModules.add(tripleResourceAttributeFinderModule);
-        myAttributeFinder = new AttributeFinder();
-        myAttributeFinder.setModules(attributeFinderModules);
+        builder.addFinderModule(tripleResourceAttributeFinderModule);
 
         final Set<String> roles = getRoles(session, absPath);
-
-        final RequestCtx request =
-                getRequestContext(session, absPath, actions, roles);
-
-        try {
-            result = new BasicEvaluationCtx(request, myAttributeFinder, true);
-        } catch (final ParsingException e) {
-            throw new Error(e);
-        }
-        return result;
+        final Principal user =
+                (Principal) session.getAttribute(FEDORA_USER_PRINCIPAL);
+        builder.addSubject(user.getName(), roles);
+        builder.addResourceID(absPath.getString());
+        builder.addWorkspace(session.getWorkspace().getName());
+        builder.addActions(actions);
+        // TODO builder.addRequestIP(session.getAttribute(REQUEST_ATTR))
+        return builder.build();
     }
 
     /**
