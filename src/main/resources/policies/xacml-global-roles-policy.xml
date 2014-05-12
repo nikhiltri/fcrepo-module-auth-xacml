@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PolicySet xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation = “urn:oasis:names:tc:xacml:2.0:policy:schema:os access_control-xacml-2.0-policyschema-os.xsd”
+        PolicySetId="urn:fedora:policy:xacml:GlobalRolesPolicySet"
+        RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:permit-override">
+  <PolicySetIdReference>urn:fedora:policy:xacml:ReaderRolePolicySet</PolicySetIdReference>
+  <PolicySetIdReference>urn:fedora:policy:xacml:WriterRolePolicySet</PolicySetIdReference>
+  <PolicySetIdReference>urn:fedora:policy:xacml:AdminRolePolicySet</PolicySetIdReference>
+</PolicySet>

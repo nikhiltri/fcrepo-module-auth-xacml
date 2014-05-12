@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PolicySet xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation = "urn:oasis:names:tc:xacml:2.0:policy:schema:os access_control-xacml-2.0-policyschema-os.xsd"
+        PolicySetId="urn:fedora:policy:xacml:WriteNormalNodePermissionPolicySet"
+        RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:permit-override">
+  <Policy PolicyId="urn:fedora:policy:xacml:WriteNormalNodePermissionPolicy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable">
+    <Rule RuleId="urn:fedora:policy:xacml:RuleDenyWriteACLProperties" Effect="Deny">
+      <Target>
+        <Resources>
+          <Resource>
+            <ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#URI">http://fedora.info/definitions/v4/authorization#Rbacl</AttributeValue>
+              <ResourceAttributeDesignator AttributeId="http://www.w3.org/1999/02/22-rdf-syntax-ns#type" DataType="http://www.w3.org/2001/XMLSchema#URI"/>
+            </ResourceMatch>
+          </Resource>
+          <Resource>
+            <ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#URI">http://fedora.info/definitions/v4/authorization#Assignment</AttributeValue>
+              <ResourceAttributeDesignator AttributeId="http://www.w3.org/1999/02/22-rdf-syntax-ns#type" DataType="http://www.w3.org/2001/XMLSchema#URI"/>
+            </ResourceMatch>
+          </Resource>
+        </Resources>
+        <Actions>
+          <Action>
+            <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
+              <ActionAttributeDesignator>set_property</ActionAttributeDesignator>
+            </ActionMatch>
+          </Action>
+          <Action>
+            <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
+              <ActionAttributeDesignator>remove</ActionAttributeDesignator>
+            </ActionMatch>
+          </Action>
+        </Actions>
+      </Target>
+    </Rule>
+    <Rule RuleId="urn:fedora:policy:xacml:RulePermitWriteNormalNode" Effect="Permit">
+      <Target>
+        <Resources>
+          <AnyResource/>
+        </Resources>
+        <Actions>
+          <Action>
+            <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
+              <ActionAttributeDesignator>add_node</ActionAttributeDesignator>
+            </ActionMatch>
+          </Action>
+          <Action>
+            <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
+              <ActionAttributeDesignator>set_property</ActionAttributeDesignator>
+            </ActionMatch>
+          </Action>
+          <Action>
+            <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
+              <ActionAttributeDesignator>remove</ActionAttributeDesignator>
+            </ActionMatch>
+          </Action>
+          <Action>
+            <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
+              <ActionAttributeDesignator>remove_child_nodes</ActionAttributeDesignator>
+            </ActionMatch>
+          </Action>
+        </Actions>
+      </Target>
+    </Rule>
+    <Rule RuleId="urn:fedora:policy:xacml:RuleDenyNonWriteActions" Effect="Deny"/>
+  </Policy>
+  <PolicySetIdReference>urn:fedora:policy:xacml:ReadNormalNodePermissionPolicySet</PolicySetIdReference>
+</PolicySet>
