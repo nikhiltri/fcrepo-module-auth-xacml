@@ -20,6 +20,7 @@ import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_RESOURCE_ID;
 import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_RESOURCE_SCOPE;
 import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_RESOURCE_WORKSPACE;
 import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_SUBJECT_ID;
+import static org.fcrepo.auth.xacml.URIConstants.FCREPO_SUBJECT_ROLE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -120,8 +121,15 @@ public class FedoraEvaluationCtxBuilder {
         final Attribute sid =
                 new Attribute(ATTRIBUTEID_SUBJECT_ID, null, null, v);
         subjectAttrs.add(sid);
-        // TODO roles => role
+
+        for (final String role : roles) {
+            final StringAttribute roleAttr = new StringAttribute(role);
+            final Attribute roleId = new Attribute(FCREPO_SUBJECT_ROLE, null, null, roleAttr);
+            subjectAttrs.add(roleId);
+        }
+
         this.subjectList.add(new Subject(subjectAttrs));
+
         return this;
     }
 
@@ -132,6 +140,7 @@ public class FedoraEvaluationCtxBuilder {
      * @return the builder
      */
     public final FedoraEvaluationCtxBuilder addResourceID(final String path) {
+
         final Attribute rid =
                 new Attribute(ATTRIBUTEID_RESOURCE_ID, null, null,
                         new StringAttribute(path));
