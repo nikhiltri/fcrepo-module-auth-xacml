@@ -4,7 +4,7 @@
         xmlns:fcrepo="http://fedora.info/definitions/v4/repository#"
         xsi:schemaLocation = "urn:oasis:names:tc:xacml:2.0:policy:schema:os access_control-xacml-2.0-policyschema-os.xsd"
         PolicySetId="fcrepo:policies/WriteNormalNodePermissionPolicySet"
-        RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:permit-override">
+        PolicyCombiningAlgId="urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:permit-overrides">
   <Policy PolicyId="fcrepo-xacml:WriteNormalNodePermissionPolicy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable">
     <Rule RuleId="fcrepo-xacml:RuleDenyWriteACLProperties" Effect="Deny">
       <Target>
@@ -26,13 +26,19 @@
           <Action>
             <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
               <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
-              <ActionAttributeDesignator>set_property</ActionAttributeDesignator>
+              <ActionAttributeDesignator>add_node</ActionAttributeDesignator>
             </ActionMatch>
           </Action>
           <Action>
             <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
               <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
               <ActionAttributeDesignator>remove</ActionAttributeDesignator>
+            </ActionMatch>
+          </Action>
+          <Action>
+            <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
+              <ActionAttributeDesignator>remove_child_nodes</ActionAttributeDesignator>
             </ActionMatch>
           </Action>
         </Actions>
