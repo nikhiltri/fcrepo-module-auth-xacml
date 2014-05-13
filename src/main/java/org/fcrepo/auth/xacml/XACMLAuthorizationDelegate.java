@@ -26,11 +26,13 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.servlet.http.HttpServletRequest;
 
 import org.fcrepo.auth.common.FedoraAuthorizationDelegate;
 import org.fcrepo.auth.roles.common.AccessRolesProvider;
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
+import org.fcrepo.kernel.services.NodeService;
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.PDP;
 import org.jboss.security.xacml.sunxacml.ctx.ResponseCtx;
@@ -126,6 +128,9 @@ public class XACMLAuthorizationDelegate implements FedoraAuthorizationDelegate,
      */
     @Autowired
     private SessionFactory sessionFactory;
+
+    @Autowired
+    private NodeService nodeService;
 
     /**
      * Configures the Sun XACML PDP for resource and policy finding.
@@ -244,10 +249,17 @@ public class XACMLAuthorizationDelegate implements FedoraAuthorizationDelegate,
         final Principal user =
                 (Principal) session.getAttribute(FEDORA_USER_PRINCIPAL);
         builder.addSubject(user.getName(), roles);
+        // try {
+        // final FedoraResource res = nodeService.getObject(session, absPath.getString());
+        // res.get
         builder.addResourceID(absPath.getString());
+        // }
         builder.addWorkspace(session.getWorkspace().getName());
         builder.addActions(actions);
-        // TODO builder.addRequestIP(session.getAttribute(REQUEST_ATTR))
+
+        // TODO builder.addRequestIP()
+        final HttpServletRequest request = (HttpServletRequest) session.getAttribute(FEDORA_SERVLET_REQUEST);
+        builder.addOriginalRequestIP(request.getRemoteAddr());
         return builder.build();
     }
 

@@ -11,3 +11,4 @@ release.properties
 *~
 fcrepo4-data
 .checkstyle
+.externalToolBuilders
