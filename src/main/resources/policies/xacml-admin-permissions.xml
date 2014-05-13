@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PolicySet xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:fcrepo="http://fedora.info/definitions/v4/repository#"
         xsi:schemaLocation = "urn:oasis:names:tc:xacml:2.0:policy:schema:os access_control-xacml-2.0-policyschema-os.xsd"
-        PolicySetId="fcrepo:/policies/AdminPermissionPolicySet"
+        PolicySetId="fcrepo:policies/AdminPermissionPolicySet"
         RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:permit-override">
   <Policy PolicyId="fcrepo-xacml:AdminPermissionPolicy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable">
     <Rule RuleId="fcrepo-xacml:RulePermitAdmin" Effect="Permit">
@@ -64,5 +65,5 @@
     </Rule>
     <Rule RuleId="fcrepo-xacml:RuleDenyFedoraAdminActions" Effect="Deny"/>
   </Policy>
-  <PolicySetIdReference>fcrepo:/policies/WriteNormalNodePermissionPolicySet</PolicySetIdReference>
+  <PolicySetIdReference>fcrepo:policies/WriteNormalNodePermissionPolicySet</PolicySetIdReference>
 </PolicySet>
