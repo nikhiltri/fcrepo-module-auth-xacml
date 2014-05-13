@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PolicySet xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:fcrepo="http://fedora.info/definitions/v4/repository#"
+        xsi:schemaLocation = "urn:oasis:names:tc:xacml:2.0:policy:schema:os access_control-xacml-2.0-policyschema-os.xsd"
+        PolicySetId="fcrepo:policies/AdminPermissionPolicySet"
+        PolicyCombiningAlgId="urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:permit-overrides">
+  <Policy PolicyId="fcrepo-xacml:AdminPermissionPolicy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable">
+    <Rule RuleId="fcrepo-xacml:RulePermitAdmin" Effect="Permit">
+      <Target>
+        <Resources>
+          <AnyResource/>
+        </Resources>
+        <Actions>
+          <Action>
+            <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
+              <ActionAttributeDesignator>unlock_any</ActionAttributeDesignator>
+            </ActionMatch>
+          </Action>
+          <Action>
+            <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
+              <ActionAttributeDesignator>add_node</ActionAttributeDesignator>
+            </ActionMatch>
+          </Action>
+          <Action>
+            <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
+              <ActionAttributeDesignator>set_property</ActionAttributeDesignator>
+            </ActionMatch>
+          </Action>
+          <Action>
+            <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
+              <ActionAttributeDesignator>remove</ActionAttributeDesignator>
+            </ActionMatch>
+          </Action>
+          <Action>
+            <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
+              <ActionAttributeDesignator>remove_child_nodes</ActionAttributeDesignator>
+            </ActionMatch>
+          </Action>
+          <Action>
+            <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
+              <ActionAttributeDesignator>read</ActionAttributeDesignator>
+            </ActionMatch>
+          </Action>
+          <Action>
+            <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
+              <ActionAttributeDesignator>read_access_control</ActionAttributeDesignator>
+            </ActionMatch>
+          </Action>
+          <Action>
+            <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
+              <ActionAttributeDesignator>modify_access_control</ActionAttributeDesignator>
+            </ActionMatch>
+          </Action>
+        </Actions>
+      </Target>
+    </Rule>
+    <Rule RuleId="fcrepo-xacml:RuleDenyFedoraAdminActions" Effect="Deny"/>
+  </Policy>
+  <PolicySetIdReference>fcrepo:policies/WriteNormalNodePermissionPolicySet</PolicySetIdReference>
+</PolicySet>
