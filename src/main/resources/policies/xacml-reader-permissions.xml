@@ -2,10 +2,10 @@
 <PolicySet xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation = "urn:oasis:names:tc:xacml:2.0:policy:schema:os access_control-xacml-2.0-policyschema-os.xsd"
-        PolicySetId="urn:fedora:policy:xacml:ReadNormalNodePermissionPolicySet"
+        PolicySetId="fcrepo:/policies/ReadNormalNodePermissionPolicySet"
         RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:permit-override">
-  <Policy PolicyId="urn:fedora:policy:xacml:ReadNormalNodePermissionPolicy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable">
-    <Rule RuleId="urn:fedora:policy:xacml:RuleDenyReadACLProperties" Effect="Deny">
+  <Policy PolicyId="fcrepo-xacml:ReadNormalNodePermissionPolicy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable">
+    <Rule RuleId="fcrepo-xacml:RuleDenyReadACLProperties" Effect="Deny">
       <Target>
         <Resources>
           <Resource>
@@ -31,7 +31,7 @@
         </Actions>
       </Target>
     </Rule>
-    <Rule RuleId="urn:fedora:policy:xacml:RulePermitReadNormalNode" Effect="Permit">
+    <Rule RuleId="fcrepo-xacml:RulePermitReadNormalNode" Effect="Permit">
       <Target>
         <Resources>
           <AnyResource/>
@@ -46,6 +46,6 @@
         </Actions>
       </Target>
     </Rule>
-    <Rule RuleId="urn:fedora:policy:xacml:RuleDenyNonReadActions" Effect="Deny"/>
+    <Rule RuleId="fcrepo-xacml:RuleDenyNonReadActions" Effect="Deny"/>
   </Policy>
 </PolicySet>

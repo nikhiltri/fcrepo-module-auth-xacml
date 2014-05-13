@@ -2,17 +2,17 @@
 <PolicySet xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation = “urn:oasis:names:tc:xacml:2.0:policy:schema:os access_control-xacml-2.0-policyschema-os.xsd”
-        PolicySetId="urn:fedora:policy:xacml:AdminRolePolicySet"
+        PolicySetId="fcrepo:/policies/AdminRolePolicySet"
         RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:permit-override">
   <Target>
     <Subjects>
       <Subject>
         <SubjectMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
             <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">admin</AttributeValue>
-            <SubjectAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:2.0:subject:role" DataType="http://www.w3.org/2001/XMLSchema#anyURI"/>
+            <SubjectAttributeDesignator AttributeId="fcrepo-xacml:subject-role" DataType="http://www.w3.org/2001/XMLSchema#anyURI"/>
         </SubjectMatch>
       </Subject>
     </Subjects>
   </Target>
-  <PolicySetIdReference>urn:fedora:policy:xacml:AdminPermissionPolicySet</PolicySetIdReference>
+  <PolicySetIdReference>fcrepo:/policies/AdminPermissionPolicySet</PolicySetIdReference>
 </PolicySet>

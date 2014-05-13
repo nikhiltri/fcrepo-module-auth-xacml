@@ -2,10 +2,10 @@
 <PolicySet xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation = "urn:oasis:names:tc:xacml:2.0:policy:schema:os access_control-xacml-2.0-policyschema-os.xsd"
-        PolicySetId="urn:fedora:policy:xacml:AdminPermissionPolicySet"
+        PolicySetId="fcrepo:/policies/AdminPermissionPolicySet"
         RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:permit-override">
-  <Policy PolicyId="urn:fedora:policy:xacml:AdminPermissionPolicy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable">
-    <Rule RuleId="urn:fedora:policy:xacml:RulePermitAdmin" Effect="Permit">
+  <Policy PolicyId="fcrepo-xacml:AdminPermissionPolicy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable">
+    <Rule RuleId="fcrepo-xacml:RulePermitAdmin" Effect="Permit">
       <Target>
         <Resources>
           <AnyResource/>
@@ -62,7 +62,7 @@
         </Actions>
       </Target>
     </Rule>
-    <Rule RuleId="urn:fedora:policy:xacml:RuleDenyFedoraAdminActions" Effect="Deny"/>
+    <Rule RuleId="fcrepo-xacml:RuleDenyFedoraAdminActions" Effect="Deny"/>
   </Policy>
-  <PolicySetIdReference>urn:fedora:policy:xacml:WriteNormalNodePermissionPolicySet</PolicySetIdReference>
+  <PolicySetIdReference>fcrepo:/policies/WriteNormalNodePermissionPolicySet</PolicySetIdReference>
 </PolicySet>
