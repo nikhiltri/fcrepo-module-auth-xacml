@@ -3,7 +3,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:fcrepo="http://fedora.info/definitions/v4/repository#"
         xsi:schemaLocation = "urn:oasis:names:tc:xacml:2.0:policy:schema:os access_control-xacml-2.0-policyschema-os.xsd"
-        PolicySetId="fcrepo:policies/AdminRolePolicySet"
+        PolicySetId="info:fedora/policies/AdminRolePolicySet"
         PolicyCombiningAlgId="urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:permit-overrides">
   <Target>
     <Subjects>
@@ -15,5 +15,5 @@
       </Subject>
     </Subjects>
   </Target>
-  <PolicySetIdReference>fcrepo:policies/AdminPermissionPolicySet</PolicySetIdReference>
+  <PolicySetIdReference>info:fedora/policies/AdminPermissionPolicySet</PolicySetIdReference>
 </PolicySet>

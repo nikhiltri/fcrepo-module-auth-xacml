@@ -50,6 +50,11 @@ public abstract class URIConstants {
             .create(XACMLConstants.ATTRIBUTEID_RESOURCE_ID);
 
     /**
+     * External URI of the resource (External Identifier).
+     */
+    public static final URI ATTRIBUTEID_RESOURCE_URI = URI.create("urn:fedora:xacml:2.0:resource:resource-uri");
+
+    /**
      * ID of the ModeShape workspace for this resource.
      */
     public static final URI ATTRIBUTEID_RESOURCE_WORKSPACE = URI
@@ -63,6 +68,12 @@ public abstract class URIConstants {
 
     public static final String XACML_POLICY_PROPERTY = "authz:policy";
 
-    public static final String POLICY_URI_PREFIX = "fcrepo:";
+    public static final String POLICY_URI_PREFIX = "info:fedora";
+
+    /**
+     * Original request IP, which may be forwarded by an application.
+     */
+    public static final URI ATTRIBUTEID_ENVIRONMENT_ORIGINAL_IP_ADDRESS = URI
+            .create("urn:fedora:xacml:2.0:environment:original-ip-address");
 
 }

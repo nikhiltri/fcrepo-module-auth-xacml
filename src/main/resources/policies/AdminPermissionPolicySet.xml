@@ -2,26 +2,25 @@
 <PolicySet xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:fcrepo="http://fedora.info/definitions/v4/repository#"
-        xsi:schemaLocation = "urn:oasis:names:tc:xacml:2.0:policy:schema:os access_control-xacml-2.0-policyschema-os.xsd"
-        PolicySetId="fcrepo:policies/AdminPermissionPolicySet"
+        xsi:schemaLocation = "urn:oasis:names:tc:xacml:2.0:policy:schema:os http://docs.oasis-open.org/xacml/2.0/access_control-xacml-2.0-policy-schema-os.xsd"
+        PolicySetId="info:fedora/policies/AdminPermissionPolicySet"
         PolicyCombiningAlgId="urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:permit-overrides">
+  <Target/>
   <Policy PolicyId="fcrepo-xacml:AdminPermissionPolicy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable">
+    <Target/>
     <Rule RuleId="fcrepo-xacml:RulePermitAdmin" Effect="Permit">
       <Target>
-        <Resources>
-          <AnyResource/>
-        </Resources>
         <Actions>
           <Action>
             <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
-              <ActionAttributeDesignator>unlock_any</ActionAttributeDesignator>
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">unlock_any</AttributeValue>
+              <ActionAttributeDesignator DataType="http://www.w3.org/2001/XMLSchema#string" AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id"/>
             </ActionMatch>
           </Action>
           <Action>
             <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">urn:oasis:names:tc:xacml:1.0:action:action-id</AttributeValue>
-              <ActionAttributeDesignator>add_node</ActionAttributeDesignator>
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">add_node</AttributeValue>
+              <ActionAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string"/>
             </ActionMatch>
           </Action>
           <Action>
@@ -65,5 +64,5 @@
     </Rule>
     <Rule RuleId="fcrepo-xacml:RuleDenyFedoraAdminActions" Effect="Deny"/>
   </Policy>
-  <PolicySetIdReference>fcrepo:policies/WriteNormalNodePermissionPolicySet</PolicySetIdReference>
+  <PolicySetIdReference>info:fedora/policies/WriteNormalNodePermissionPolicySet</PolicySetIdReference>
 </PolicySet>

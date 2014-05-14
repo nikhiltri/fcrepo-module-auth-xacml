@@ -16,6 +16,7 @@
 
 package org.fcrepo.auth.xacml;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.HashSet;
@@ -26,11 +27,13 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.servlet.http.HttpServletRequest;
 
 import org.fcrepo.auth.common.FedoraAuthorizationDelegate;
 import org.fcrepo.auth.roles.common.AccessRolesProvider;
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
+import org.fcrepo.kernel.services.NodeService;
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.PDP;
 import org.jboss.security.xacml.sunxacml.ctx.ResponseCtx;
@@ -72,6 +75,9 @@ public class XACMLAuthorizationDelegate implements FedoraAuthorizationDelegate,
      */
     private static final String ENVIRONMENT_ATTRIBUTE_FINDER_BEAN =
             "environmentAttributeFinderModule";
+
+    @Autowired
+    private PDPFactory pdpFactory;
 
     /**
      * The XACML PDP.
@@ -127,12 +133,21 @@ public class XACMLAuthorizationDelegate implements FedoraAuthorizationDelegate,
     @Autowired
     private SessionFactory sessionFactory;
 
+    @Autowired
+    private NodeService nodeService;
+
     /**
-     * Configures the Sun XACML PDP for resource and policy finding.
+     * Configures the delegate.
+     *
+     * @throws IOException
+     * @throws RepositoryException
      */
     @PostConstruct
-    public final void init() {
-
+    public final void init() throws RepositoryException, IOException {
+        pdp = pdpFactory.makePDP();
+        if (pdp == null) {
+            throw new Error("There is no PDP wired by the factory in the Spring context.");
+        }
     }
 
     /*
@@ -241,14 +256,23 @@ public class XACMLAuthorizationDelegate implements FedoraAuthorizationDelegate,
         builder.addFinderModule(tripleResourceAttributeFinderModule);
 
         final Set<String> roles = getRoles(session, absPath);
+        LOGGER.info("effective roles: {}", roles);
         final Principal user =
                 (Principal) session.getAttribute(FEDORA_USER_PRINCIPAL);
         builder.addSubject(user.getName(), roles);
+        // try {
+        // final FedoraResource res = nodeService.getObject(session, absPath.getString());
+        // res.get
         builder.addResourceID(absPath.getString());
+        // }
         builder.addWorkspace(session.getWorkspace().getName());
         builder.addActions(actions);
-        // TODO builder.addRequestIP(session.getAttribute(REQUEST_ATTR))
-        return builder.build();
+
+        // TODO builder.addRequestIP()
+        final HttpServletRequest request = (HttpServletRequest) session.getAttribute(FEDORA_SERVLET_REQUEST);
+        builder.addOriginalRequestIP(request.getRemoteAddr());
+        final EvaluationCtx result = builder.build();
+        return result;
     }
 
     /**
