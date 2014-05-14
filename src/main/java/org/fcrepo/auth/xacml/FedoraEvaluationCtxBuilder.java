@@ -23,6 +23,8 @@ import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_RESOURCE_WORKSPACE;
 import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_SUBJECT_ID;
 import static org.fcrepo.auth.xacml.URIConstants.FCREPO_SUBJECT_ROLE;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -36,6 +38,8 @@ import org.jboss.security.xacml.sunxacml.ctx.RequestCtx;
 import org.jboss.security.xacml.sunxacml.ctx.Subject;
 import org.jboss.security.xacml.sunxacml.finder.AttributeFinder;
 import org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -43,6 +47,11 @@ import org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule;
  *
  */
 public class FedoraEvaluationCtxBuilder {
+
+    /**
+     * Class-level logger.
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(FedoraEvaluationCtxBuilder.class);
 
     /**
      * Create an evaluation context builder.
@@ -60,6 +69,14 @@ public class FedoraEvaluationCtxBuilder {
         final RequestCtx rc =
                 new RequestCtx(subjectList, resourceList, actionList,
                         environmentList);
+        if (LOGGER.isInfoEnabled()) {
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                rc.encode(baos);
+                LOGGER.info("RequestCtx dump:\n{}", baos.toString("utf-8"));
+            } catch (final IOException e) {
+                LOGGER.error("Cannot print request context", e);
+            }
+        }
         final AttributeFinder af = new AttributeFinder();
         af.setModules(attributeFinderModules);
         try {
@@ -135,7 +152,7 @@ public class FedoraEvaluationCtxBuilder {
 
     /**
      * Add the node or property path as resource ID.
-     * 
+     *
      * @param rawModeShapePath the path to the node or property
      * @return the builder
      */

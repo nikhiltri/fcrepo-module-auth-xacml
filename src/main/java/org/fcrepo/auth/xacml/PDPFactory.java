@@ -24,6 +24,8 @@ import org.jboss.security.xacml.sunxacml.finder.PolicyFinder;
 import org.jboss.security.xacml.sunxacml.finder.ResourceFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 
 /**
@@ -31,31 +33,34 @@ import org.slf4j.LoggerFactory;
  *
  * @author Gregory Jansen
  */
-public class PDPFactoryBean {
+@Component
+public class PDPFactory {
+
+    @Autowired
+    private FedoraPolicyFinderModule fedoraPolicyFinderModule;
+
+    @Autowired
+    private FedoraResourceFinderModule fedoraResourceFinderModule;
 
     /**
      * Creates the factory.
      */
-    public PDPFactoryBean() {
+    public PDPFactory() {
     }
 
     /**
      * Class logger.
      */
     private static final Logger LOGGER = LoggerFactory
-            .getLogger(PDPFactoryBean.class);
+            .getLogger(PDPFactory.class);
 
     /**
      * Make a PDP for the Fedora environment.
      *
      * @see org.springframework.beans.factory.FactoryBean#getObject()
-     * @param fedoraPolicyFinderModule policy finder module
-     * @param fedoraResourceFinderModule resource finder module
      * @return the PDP
      */
-    public final PDP makePDP(
-            final FedoraPolicyFinderModule fedoraPolicyFinderModule,
-            final FedoraResourceFinderModule fedoraResourceFinderModule) {
+    public final PDP makePDP() {
         final PolicyFinder policyFinder = new PolicyFinder();
         policyFinder
                 .setModules(Collections.singleton(fedoraPolicyFinderModule));

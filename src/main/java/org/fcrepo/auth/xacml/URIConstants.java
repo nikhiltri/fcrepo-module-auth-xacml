@@ -68,7 +68,7 @@ public abstract class URIConstants {
 
     public static final String XACML_POLICY_PROPERTY = "authz:policy";
 
-    public static final String POLICY_URI_PREFIX = "fcrepo:";
+    public static final String POLICY_URI_PREFIX = "info:fedora";
 
     /**
      * Original request IP, which may be forwarded by an application.

@@ -9,6 +9,18 @@
   <artifactId>fcrepo-module-auth-xacml</artifactId>
   <name>Fedora Repository XACML Authorization Module</name>
   <description>Fedora Repository XACML module</description>
+  <repositories>
+    <repository>
+      <id>snapshots-repo</id>
+      <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
   <dependencies>
 
     <!-- test gear -->
@@ -86,6 +98,21 @@
     <dependency>
       <groupId>org.fcrepo</groupId>
       <artifactId>fcrepo-http-commons</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+      <type>test-jar</type>
+    </dependency>
+   
+    <dependency>
+      <groupId>org.fcrepo</groupId>
+      <artifactId>fcrepo-auth-roles-common</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.fcrepo</groupId>
+      <artifactId>fcrepo-auth-roles-basic</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
       <type>test-jar</type>

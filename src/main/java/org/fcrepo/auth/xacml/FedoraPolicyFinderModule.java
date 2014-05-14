@@ -22,6 +22,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.net.URI;
 
 import javax.jcr.Node;
+import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.xml.parsers.DocumentBuilder;
@@ -50,7 +51,7 @@ import org.w3c.dom.Element;
 
 /**
  * Locates a policy in ModeShape by evaluation context or by URI.
- * 
+ *
  * @author Gregory Jansen
  * @author bbpennel
  */
@@ -102,7 +103,7 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
 
     /**
      * Creates a new policy or policy set object from the given policy node
-     * 
+     *
      * @param policyNode
      * @return
      */
@@ -150,17 +151,16 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
     @Override
     public final PolicyFinderResult findPolicy(final EvaluationCtx context) {
 
-        final String path = context.getResourceId().getValue().toString();
+        String path = context.getResourceId().getValue().toString();
+
+        if ("".equals(path.trim())) {
+            path = "/";
+        }
 
         Node nodeWithPolicy;
         try {
             final Session internalSession = sessionFactory.getInternalSession();
             final Node node = internalSession.getNode(path);
-
-            // Verify that the node is part of the repository hierarchy
-            if (node.getParent() == null) {
-                return new PolicyFinderResult();
-            }
 
             // Walk up the hierarchy to find the first node with a policy
             // assigned
@@ -169,8 +169,9 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
                 nodeWithPolicy = nodeWithPolicy.getParent();
             }
 
+            final Property prop = nodeWithPolicy.getProperty(XACML_POLICY_PROPERTY);
             final Datastream policyDatastream =
-                    datastreamService.asDatastream(nodeWithPolicy.getProperty(XACML_POLICY_PROPERTY).getNode());
+                    datastreamService.asDatastream(prop.getNode());
 
             if (policyDatastream == null) {
                 return new PolicyFinderResult();
@@ -215,17 +216,17 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
                 LOGGER.warn("Policy reference must begin with fcrepo, but was {}", path);
                 return new PolicyFinderResult();
             }
-            path = "/" + path.substring(POLICY_URI_PREFIX.length());
+            path = path.substring(POLICY_URI_PREFIX.length());
 
             final Session internalSession = sessionFactory.getInternalSession();
             final Datastream policyDatastream =
-                    datastreamService.getDatastream(internalSession, idReference.toString());
+                    datastreamService.getDatastream(internalSession, path);
 
             final AbstractPolicy policy = getPolicy(policyDatastream);
 
             return new PolicyFinderResult(policy);
         } catch (final RepositoryException e) {
-            LOGGER.warn("Failed to retrieve a policy for {}", e, idReference.toString());
+            LOGGER.warn("Failed to retrieve a policy for " + idReference.toString(), e);
             return new PolicyFinderResult();
         }
     }

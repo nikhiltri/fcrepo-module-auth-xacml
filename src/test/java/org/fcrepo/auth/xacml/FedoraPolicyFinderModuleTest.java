@@ -26,7 +26,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -130,17 +129,6 @@ public class FedoraPolicyFinderModuleTest {
     }
 
     @Test
-    public void testFindPolicyOrphanedNode() throws Exception {
-
-        when(mockNode.getParent()).thenReturn(null);
-
-        final PolicyFinderResult result = finderModule.findPolicy(context);
-
-        verify(mockNode).getParent();
-        assertTrue(result.notApplicable());
-    }
-
-    @Test
     public void testFindPolicyOnTargetNode() throws Exception {
 
         when(mockNode.hasProperty(eq(XACML_POLICY_PROPERTY))).thenReturn(true);
@@ -164,11 +152,12 @@ public class FedoraPolicyFinderModuleTest {
 
     @Test
     public void testFindPolicyByIdReference() throws Exception {
-        final String idPath = POLICY_URI_PREFIX + "path/to/policy";
+        final String policyPath = "/path/to/policy";
+        final String idPath = POLICY_URI_PREFIX + policyPath;
         final URI idReference = new URI(idPath);
 
         when(mockPolicyDs.getContent()).thenReturn(this.getClass().getResourceAsStream("/xacml/testPolicy.xml"));
-        when(mockDsService.getDatastream(any(Session.class), eq(idPath))).thenReturn(mockPolicyDs);
+        when(mockDsService.getDatastream(any(Session.class), eq(policyPath))).thenReturn(mockPolicyDs);
 
         final PolicyFinderResult result = finderModule.findPolicy(idReference, 0, null, null);
 

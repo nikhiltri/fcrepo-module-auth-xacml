@@ -1,0 +1,6 @@
+<authz = 'http://fedora.info/definitions/v4/authorization#'>
+
+[authz:xacmlAssignable] mixin
+ - authz:policy (REFERENCE)
+
+[authz:xacmlPolicy] > fedora:datastream mixin

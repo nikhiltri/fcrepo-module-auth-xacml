@@ -16,6 +16,7 @@
 
 package org.fcrepo.auth.xacml;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.HashSet;
@@ -75,6 +76,9 @@ public class XACMLAuthorizationDelegate implements FedoraAuthorizationDelegate,
     private static final String ENVIRONMENT_ATTRIBUTE_FINDER_BEAN =
             "environmentAttributeFinderModule";
 
+    @Autowired
+    private PDPFactory pdpFactory;
+
     /**
      * The XACML PDP.
      */
@@ -133,11 +137,17 @@ public class XACMLAuthorizationDelegate implements FedoraAuthorizationDelegate,
     private NodeService nodeService;
 
     /**
-     * Configures the Sun XACML PDP for resource and policy finding.
+     * Configures the delegate.
+     *
+     * @throws IOException
+     * @throws RepositoryException
      */
     @PostConstruct
-    public final void init() {
-
+    public final void init() throws RepositoryException, IOException {
+        pdp = pdpFactory.makePDP();
+        if (pdp == null) {
+            throw new Error("There is no PDP wired by the factory in the Spring context.");
+        }
     }
 
     /*
@@ -246,6 +256,7 @@ public class XACMLAuthorizationDelegate implements FedoraAuthorizationDelegate,
         builder.addFinderModule(tripleResourceAttributeFinderModule);
 
         final Set<String> roles = getRoles(session, absPath);
+        LOGGER.info("effective roles: {}", roles);
         final Principal user =
                 (Principal) session.getAttribute(FEDORA_USER_PRINCIPAL);
         builder.addSubject(user.getName(), roles);
@@ -260,7 +271,8 @@ public class XACMLAuthorizationDelegate implements FedoraAuthorizationDelegate,
         // TODO builder.addRequestIP()
         final HttpServletRequest request = (HttpServletRequest) session.getAttribute(FEDORA_SERVLET_REQUEST);
         builder.addOriginalRequestIP(request.getRemoteAddr());
-        return builder.build();
+        final EvaluationCtx result = builder.build();
+        return result;
     }
 
     /**
