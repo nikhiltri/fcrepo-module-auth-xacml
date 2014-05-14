@@ -134,15 +134,19 @@ public class FedoraEvaluationCtxBuilder {
     public final FedoraEvaluationCtxBuilder addSubject(final String username,
             final Set<String> roles) {
         final List<Attribute> subjectAttrs = new ArrayList<Attribute>();
-        final StringAttribute v = new StringAttribute(username);
-        final Attribute sid =
+        if (username != null) {
+            final StringAttribute v = new StringAttribute(username);
+            final Attribute sid =
                 new Attribute(ATTRIBUTEID_SUBJECT_ID, null, null, v);
-        subjectAttrs.add(sid);
+            subjectAttrs.add(sid);
+        }
 
-        for (final String role : roles) {
-            final StringAttribute roleAttr = new StringAttribute(role);
-            final Attribute roleId = new Attribute(FCREPO_SUBJECT_ROLE, null, null, roleAttr);
-            subjectAttrs.add(roleId);
+        if (roles != null) {
+            for (final String role : roles) {
+                final StringAttribute roleAttr = new StringAttribute(role);
+                final Attribute roleId = new Attribute(FCREPO_SUBJECT_ROLE, null, null, roleAttr);
+                subjectAttrs.add(roleId);
+            }
         }
 
         this.subjectList.add(new Subject(subjectAttrs));
@@ -185,16 +189,18 @@ public class FedoraEvaluationCtxBuilder {
      * @return the builder
      */
     public final FedoraEvaluationCtxBuilder addActions(final String[] actions) {
-        for (final String action : actions) {
-            final Attribute a =
+        if (actions != null) {
+            for (final String action : actions) {
+                final Attribute a =
                     new Attribute(ATTRIBUTEID_ACTION_ID, null, null,
                             new StringAttribute(action));
-            actionList.add(a);
-            if ("remove".equals(action)) {
-                final Attribute scope =
+                actionList.add(a);
+                if ("remove".equals(action)) {
+                    final Attribute scope =
                         new Attribute(ATTRIBUTEID_RESOURCE_SCOPE, null, null,
                                 new StringAttribute("Descendants"));
-                resourceList.add(scope);
+                    resourceList.add(scope);
+                }
             }
         }
         return this;
