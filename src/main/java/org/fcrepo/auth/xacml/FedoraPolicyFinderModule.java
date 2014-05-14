@@ -211,12 +211,12 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
             final VersionConstraints constraints, final PolicyMetaData parentMetaData) {
 
         try {
-            String path = idReference.toString();
-            if (!path.startsWith(POLICY_URI_PREFIX)) {
-                LOGGER.warn("Policy reference must begin with fcrepo, but was {}", path);
+            final String id = idReference.toString();
+            if (!id.startsWith(POLICY_URI_PREFIX)) {
+                LOGGER.warn("Policy reference must begin with {}, but was {}", POLICY_URI_PREFIX, id);
                 return new PolicyFinderResult();
             }
-            path = path.substring(POLICY_URI_PREFIX.length());
+            final String path = PolicyUtil.getPathForId(id);
 
             final Session internalSession = sessionFactory.getInternalSession();
             final Datastream policyDatastream =

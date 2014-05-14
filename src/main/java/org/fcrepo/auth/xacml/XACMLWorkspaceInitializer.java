@@ -26,10 +26,9 @@ import javax.jcr.Session;
 import javax.jcr.nodetype.NodeType;
 import javax.jcr.nodetype.NodeTypeIterator;
 
-import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.FileUtils;
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.Datastream;
-import org.fcrepo.kernel.FedoraResource;
 import org.fcrepo.kernel.exception.InvalidChecksumException;
 import org.fcrepo.kernel.services.DatastreamService;
 import org.fcrepo.kernel.services.NodeService;
@@ -66,6 +65,22 @@ public class XACMLWorkspaceInitializer {
 
     private File initialPoliciesDirectory;
 
+    private File initialRootPolicyFile;
+
+    /**
+     * @return the initialRootPolicyFile
+     */
+    public File getInitialRootPolicyFile() {
+        return initialRootPolicyFile;
+    }
+
+    /**
+     * @param initialRootPolicyFile the initialRootPolicyFile to set
+     */
+    public void setInitialRootPolicyFile(final File initialRootPolicyFile) {
+        this.initialRootPolicyFile = initialRootPolicyFile;
+    }
+
     /**
      * @return the initialPoliciesDirectory
      */
@@ -86,22 +101,23 @@ public class XACMLWorkspaceInitializer {
     public void init() {
         registerNodeTypes();
         loadInitialPolicies();
-        setPolicyAtRoot();
+        linkRootToPolicy();
     }
 
     /**
      * Set the policy that is effective at the root node.
      */
-    private void setPolicyAtRoot() {
+    private void linkRootToPolicy() {
         Session session = null;
         try {
             session = sessionFactory.getInternalSession();
             session.getRootNode().addMixin("authz:xacmlAssignable");
-            // FIXME wire in initial root policy by info:fedora URI (policy set ID)
-            final Node globalPolicy = session.getNode("/policies/GlobalRolesPolicySet");
+            final String id = PolicyUtil.getID(FileUtils.openInputStream(initialRootPolicyFile));
+            final String repoPath = PolicyUtil.getPathForId(id);
+            final Node globalPolicy = session.getNode(repoPath);
             session.getRootNode().setProperty("authz:policy", globalPolicy);
             session.save();
-        } catch (final RepositoryException e) {
+        } catch (final RepositoryException | IOException e) {
             throw new Error("Cannot configure root mix-in or policy", e);
         } finally {
             if (session != null) {
@@ -111,18 +127,19 @@ public class XACMLWorkspaceInitializer {
     }
 
     /**
-     * Create nodes for the default XACML policy set.
+     * Create nodes for the default XACML policy set. Policies are created at paths according to their IDs.
      */
     private void loadInitialPolicies() {
         Session session;
         try {
             session = sessionFactory.getInternalSession();
-            final FedoraResource policies = nodeService.findOrCreateObject(session, "/policies");
+            // final FedoraResource policies = nodeService.findOrCreateObject(session, "/policies");
             for (final File p : initialPoliciesDirectory.listFiles()) {
-                final String baseName = FilenameUtils.getBaseName(p.getName());
-                // FIXME extract policy datastream full path from path in XACML policy ID
+                // final String baseName = FilenameUtils.getBaseName(p.getName());
+                final String id = PolicyUtil.getID(FileUtils.openInputStream(p));
+                final String repoPath = PolicyUtil.getPathForId(id);
                 final Datastream d =
-                        datastreamService.createDatastream(session, "/policies/" + baseName, "application/xml", p
+                        datastreamService.createDatastream(session, repoPath, "application/xml", p
                         .getAbsolutePath(),
                         new FileInputStream(p));
                 LOGGER.info("Add initial policy {} at {}", p.getAbsolutePath(), d.getPath());
