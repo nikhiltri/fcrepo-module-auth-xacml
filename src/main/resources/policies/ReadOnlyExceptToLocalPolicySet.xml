@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PolicySet xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="urn:oasis:names:tc:xacml:2.0:policy:schema:os http://docs.oasis-open.org/xacml/2.0/access_control-xacml-2.0-policy-schema-os.xsd"
+        PolicySetId="info:fedora/policies/ReadOnlyExceptToLocalPolicySet"
+        PolicyCombiningAlgId="urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:permit-overrides">
+  <Description>
+      A policy set that prevents all repository-changing actions by all but
+      those a localhost or on an internal network.  This is just an example
+      policy for use in testing and is not a recommended way to secure one's
+      Fedora repository.
+  </Description>
+  <Target/>
+  <Policy PolicyId="fcrepo-xacml:ReadOnlyExcepToLocalPolicy"
+    RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable">
+    <Target />
+    <Rule RuleId="fcrepo-xacml:RulePermitAllFromLocalNetwork" Effect="Permit">
+      <Target>
+        <Environments>
+          <Environment>
+            <EnvironmentMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">127.0.0.1</AttributeValue>
+              <EnvironmentAttributeDesignator
+                AttributeId="urn:fedora:xacml:2.0:environment:original-ip-address"
+                DataType="http://www.w3.org/2001/XMLSchema#string"/>
+            </EnvironmentMatch>
+          </Environment>
+          <Environment>
+            <EnvironmentMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:regexp-string-match">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">192\.168\.\d{1,3}\.\d{1,3}</AttributeValue>
+              <EnvironmentAttributeDesignator
+                AttributeId="urn:fedora:xacml:2.0:environment:original-ip-address"
+                DataType="http://www.w3.org/2001/XMLSchema#string"/>
+            </EnvironmentMatch>
+          </Environment>
+          <Environment>
+            <EnvironmentMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:regexp-string-match">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">10\.0\.0\.\d{1,3}</AttributeValue>
+              <EnvironmentAttributeDesignator
+                AttributeId="urn:fedora:xacml:2.0:environment:original-ip-address"
+                DataType="http://www.w3.org/2001/XMLSchema#string"/>
+            </EnvironmentMatch>
+          </Environment>
+        </Environments>
+      </Target>
+    </Rule>
+    <Rule RuleId="fcrepo-xacml:PermitReadToAllIPs" Effect="Permit">
+      <Target>
+        <Actions>
+          <Action>
+            <ActionMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</AttributeValue>
+              <ActionAttributeDesignator DataType="http://www.w3.org/2001/XMLSchema#string"
+                AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id"/>
+            </ActionMatch>
+          </Action>
+        </Actions>
+      </Target>
+    </Rule>
+    <Rule RuleId="fcrepo-xacml:DenyOther" Effect="Deny" />
+  </Policy>
+</PolicySet>
