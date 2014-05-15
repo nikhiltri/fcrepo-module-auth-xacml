@@ -101,7 +101,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
 
     /**
      * Supports resource attributes.
-     * 
+     *
      * @return the supported designator types.
      * @see org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule#getSupportedDesignatorTypes()
      */
@@ -124,7 +124,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
                                                 final URI subjectCategory,
                                                 final EvaluationCtx context,
                                                 final int designatorType) {
-        LOGGER.debug("findAttribute({}, {}, {}, {}, {}, {})",
+        LOGGER.info("###findAttribute({}, {}, {}, {}, {}, {})",
                      attributeType, attributeId, issuer, subjectCategory, context, designatorType);
 
         empty_bag = createEmptyBag(attributeType);
@@ -137,7 +137,6 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
         final Session session;
         try {
             session = sessionFactory.getInternalSession();
-
         } catch (final RepositoryException e) {
             LOGGER.debug("Error getting session!");
             final Status status = new Status(singletonList(STATUS_PROCESSING_ERROR), "Error getting session");
@@ -146,7 +145,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
 
         // The resourceId is the path of the object be acted on, retrieved from the PDP evaluation context
         final AttributeValue resourceIdAttValue = context.getResourceId();
-        if (null == resourceIdAttValue) {
+        if ((resourceIdAttValue.getValue().toString().isEmpty())) {
             LOGGER.debug("Context should have a resource-id attribute!");
             final Status status = new Status(singletonList(STATUS_PROCESSING_ERROR), "Resource Id not found!");
             return new EvaluationResult(status);
@@ -175,7 +174,8 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
             properties = resource.getPropertiesDataset(idTranslator).asDatasetGraph();
         } catch (final RepositoryException e) {
             final Status status =
-                    new Status(singletonList(STATUS_PROCESSING_ERROR), "Error retrieving properties for [" + path + "]!");
+                    new Status(singletonList(STATUS_PROCESSING_ERROR),
+                            "Error retrieving properties for [" + path + "]!");
             return new EvaluationResult(status);
         }
 
