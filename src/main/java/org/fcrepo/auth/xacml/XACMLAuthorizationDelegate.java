@@ -19,7 +19,6 @@ package org.fcrepo.auth.xacml;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -30,18 +29,15 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.servlet.http.HttpServletRequest;
 
-import org.fcrepo.auth.common.FedoraAuthorizationDelegate;
+import org.fcrepo.auth.roles.common.AbstractRolesAuthorizationDelegate;
 import org.fcrepo.auth.roles.common.AccessRolesProvider;
 import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.services.NodeService;
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.PDP;
 import org.jboss.security.xacml.sunxacml.ctx.ResponseCtx;
 import org.jboss.security.xacml.sunxacml.ctx.Result;
-import org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule;
 import org.jboss.security.xacml.sunxacml.finder.impl.CurrentEnvModule;
-import org.modeshape.jcr.value.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +52,7 @@ import org.springframework.stereotype.Component;
  * @author Gregory Jansen
  */
 @Component("fad")
-public class XACMLAuthorizationDelegate implements FedoraAuthorizationDelegate,
+public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelegate implements
         ApplicationContextAware {
 
     /**
@@ -171,10 +167,10 @@ public class XACMLAuthorizationDelegate implements FedoraAuthorizationDelegate,
      * .jcr.Session, org.modeshape.jcr.value.Path, java.lang.String[])
      */
     @Override
-    public final boolean hasPermission(final Session session,
-            final Path absPath, final String[] actions) {
+    public boolean rolesHavePermission(final Session session, final String absPath, final String[] actions,
+            final Set<String> roles) {
         final EvaluationCtx evaluationCtx =
-                buildEvaluationContext(session, absPath, actions);
+                buildEvaluationContext(session, absPath, actions, roles);
 
         final ResponseCtx resp = pdp.evaluate(evaluationCtx);
         boolean permit = true;
@@ -197,36 +193,6 @@ public class XACMLAuthorizationDelegate implements FedoraAuthorizationDelegate,
     }
 
     /**
-     * @param session modeshape session
-     * @param absPath node path
-     * @return effective content roles for session
-     */
-    private Set<String> getRoles(final Session session, final Path absPath) {
-        Set<String> result = null;
-
-        @SuppressWarnings("unchecked")
-        Set<Principal> allPrincipals =
-                (Set<Principal>) session.getAttribute(FEDORA_ALL_PRINCIPALS);
-        if (allPrincipals == null) {
-            allPrincipals = Collections.emptySet();
-        }
-
-        try {
-            final Session internalSession = sessionFactory.getInternalSession();
-            final Map<String, List<String>> acl =
-                    accessRolesProvider.findRolesForPath(absPath,
-                            internalSession);
-            result = resolveUserRoles(acl, allPrincipals);
-            LOGGER.debug("roles for this request: {}", result);
-        } catch (final RepositoryException e) {
-            throw new RepositoryRuntimeException(
-                    "Cannot look up node information on " + absPath +
-                            " for permissions check.", e);
-        }
-        return result;
-    }
-
-    /**
      * Builds a global attribute finder from injected modules that may use
      * current session information.
      *
@@ -236,46 +202,40 @@ public class XACMLAuthorizationDelegate implements FedoraAuthorizationDelegate,
      * @return an attribute finder
      */
     private EvaluationCtx buildEvaluationContext(final Session session,
-            final Path absPath, final String[] actions) {
+            final String absPath, final String[] actions, final Set<String> roles) {
         final FedoraEvaluationCtxBuilder builder =
                 new FedoraEvaluationCtxBuilder();
         builder.addFinderModule(currentEnvironmentAttributeModule);
         builder.addFinderModule(sparqlResourceAttributeFinderModule);
 
         // A subject attribute finder prototype is injected with Session
-        AttributeFinderModule subjectAttributeFinder = null;
-        if (applicationContext
-                .containsBeanDefinition(SUBJECT_ATTRIBUTE_FINDER_BEAN)) {
-            subjectAttributeFinder =
-                    (AttributeFinderModule) applicationContext.getBean(
-                            SUBJECT_ATTRIBUTE_FINDER_BEAN, session);
-            builder.addFinderModule(subjectAttributeFinder);
-        }
+        // AttributeFinderModule subjectAttributeFinder = null;
+        // if (applicationContext
+        // .containsBeanDefinition(SUBJECT_ATTRIBUTE_FINDER_BEAN)) {
+        // subjectAttributeFinder =
+        // (AttributeFinderModule) applicationContext.getBean(
+        // SUBJECT_ATTRIBUTE_FINDER_BEAN, session);
+        // builder.addFinderModule(subjectAttributeFinder);
+        // }
 
         // environment attribute finder is injected with Session
-        AttributeFinderModule environmentAttributeFinder = null;
-        if (applicationContext
-                .containsBeanDefinition(ENVIRONMENT_ATTRIBUTE_FINDER_BEAN)) {
-            environmentAttributeFinder =
-                    (AttributeFinderModule) applicationContext.getBean(
-                            ENVIRONMENT_ATTRIBUTE_FINDER_BEAN, session);
-            builder.addFinderModule(environmentAttributeFinder);
-        }
+        // AttributeFinderModule environmentAttributeFinder = null;
+        // if (applicationContext
+        // .containsBeanDefinition(ENVIRONMENT_ATTRIBUTE_FINDER_BEAN)) {
+        // environmentAttributeFinder =
+        // (AttributeFinderModule) applicationContext.getBean(
+        // ENVIRONMENT_ATTRIBUTE_FINDER_BEAN, session);
+        // builder.addFinderModule(environmentAttributeFinder);
+        // }
 
         // Triple attribute finder will look in modeshape for any valid
         // predicate URI, therefore it falls last in this list.
         builder.addFinderModule(tripleResourceAttributeFinderModule);
-
-        final Set<String> roles = getRoles(session, absPath);
         LOGGER.info("effective roles: {}", roles);
         final Principal user =
                 (Principal) session.getAttribute(FEDORA_USER_PRINCIPAL);
         builder.addSubject(user.getName(), roles);
-        // try {
-        // final FedoraResource res = nodeService.getObject(session, absPath.getString());
-        // res.get
-        builder.addResourceID(absPath.getString());
-        // }
+        builder.addResourceID(absPath);
         builder.addWorkspace(session.getWorkspace().getName());
         builder.addActions(actions);
 
