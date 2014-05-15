@@ -39,6 +39,8 @@ import org.jboss.security.xacml.sunxacml.Policy;
 import org.jboss.security.xacml.sunxacml.PolicyMetaData;
 import org.jboss.security.xacml.sunxacml.PolicySet;
 import org.jboss.security.xacml.sunxacml.VersionConstraints;
+import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
+import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
 import org.jboss.security.xacml.sunxacml.finder.PolicyFinder;
 import org.jboss.security.xacml.sunxacml.finder.PolicyFinderModule;
 import org.jboss.security.xacml.sunxacml.finder.PolicyFinderResult;
@@ -108,6 +110,7 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
      * @return
      */
     private AbstractPolicy loadPolicy(final Datastream policyDatastream) {
+        String policyName = "unparsed";
         try {
             // create the factory
             final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -125,6 +128,7 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
             final Element root = doc.getDocumentElement();
             final String name = root.getTagName();
 
+            policyName = PolicyUtil.getID(doc);
             if (name.equals("Policy")) {
                 return Policy.getInstance(root);
             } else if (name.equals("PolicySet")) {
@@ -134,7 +138,7 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
                 throw new Exception("Unknown root document type: " + name);
             }
         } catch (final Exception e) {
-            LOGGER.error("Unable to parse policy from {}", e, policyDatastream);
+            LOGGER.error("Unable to parse policy from {}", policyName, e);
         }
 
         // a default fall-through in the case of an error
@@ -150,8 +154,11 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
      */
     @Override
     public final PolicyFinderResult findPolicy(final EvaluationCtx context) {
-
-        String path = context.getResourceId().getValue().toString();
+        final EvaluationResult ridEvalRes =
+                context.getResourceAttribute(URI.create("http://www.w3.org/2001/XMLSchema#string"),
+                        URIConstants.ATTRIBUTEID_RESOURCE_ID, null);
+        final AttributeValue resourceIdAttValue = ridEvalRes.getAttributeValue();
+        String path = resourceIdAttValue.getValue().toString();
 
         if ("".equals(path.trim())) {
             path = "/";
@@ -160,7 +167,7 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
         Node nodeWithPolicy;
         try {
             final Session internalSession = sessionFactory.getInternalSession();
-            final Node node = internalSession.getNode(path);
+            final Node node = PolicyUtil.getFirstRealNode(path, internalSession);
 
             // Walk up the hierarchy to find the first node with a policy
             // assigned

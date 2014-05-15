@@ -11,15 +11,15 @@
       <Target>
         <Resources>
           <Resource>
-            <ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#URI">http://fedora.info/definitions/v4/authorization#Rbacl</AttributeValue>
-              <ResourceAttributeDesignator AttributeId="http://www.w3.org/1999/02/22-rdf-syntax-ns#type" DataType="http://www.w3.org/2001/XMLSchema#URI"/>
+            <ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:anyURI-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#anyURI">http://fedora.info/definitions/v4/authorization#Rbacl</AttributeValue>
+              <ResourceAttributeDesignator MustBePresent="true" AttributeId="http://www.w3.org/1999/02/22-rdf-syntax-ns#type" DataType="http://www.w3.org/2001/XMLSchema#anyURI"/>
             </ResourceMatch>
           </Resource>
           <Resource>
-            <ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#URI">http://fedora.info/definitions/v4/authorization#Assignment</AttributeValue>
-              <ResourceAttributeDesignator AttributeId="http://www.w3.org/1999/02/22-rdf-syntax-ns#type" DataType="http://www.w3.org/2001/XMLSchema#URI"/>
+            <ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:anyURI-equal">
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#anyURI">http://fedora.info/definitions/v4/authorization#Assignment</AttributeValue>
+              <ResourceAttributeDesignator MustBePresent="true" AttributeId="http://www.w3.org/1999/02/22-rdf-syntax-ns#type" DataType="http://www.w3.org/2001/XMLSchema#anyURI"/>
             </ResourceMatch>
           </Resource>
         </Resources>

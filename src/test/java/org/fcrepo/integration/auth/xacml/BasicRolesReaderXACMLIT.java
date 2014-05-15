@@ -16,12 +16,8 @@
 
 package org.fcrepo.integration.auth.xacml;
 
-import static org.junit.Assert.assertNotNull;
-
 import org.fcrepo.auth.roles.basic.integration.BasicRolesReaderIT;
-import org.fcrepo.http.commons.session.SessionFactory;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * This test reuses the existing basic admin roles test, against the XACML PDP and global policies.
@@ -30,16 +26,12 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class BasicRolesReaderXACMLIT extends BasicRolesReaderIT {
 
-    @Autowired
-    private SessionFactory sessionFactory;
-
     /**
      * This test is good for running individually to find bootstrap problems with the delegate. All it does is build the
      * Fedora XACML environment.
      */
     @Test
     public void test() {
-        assertNotNull(sessionFactory);
     }
 
 }

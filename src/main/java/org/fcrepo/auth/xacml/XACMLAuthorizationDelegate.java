@@ -16,6 +16,7 @@
 
 package org.fcrepo.auth.xacml;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Collections;
@@ -176,13 +177,23 @@ public class XACMLAuthorizationDelegate implements FedoraAuthorizationDelegate,
                 buildEvaluationContext(session, absPath, actions);
 
         final ResponseCtx resp = pdp.evaluate(evaluationCtx);
+        boolean permit = true;
         for (final Object o : resp.getResults()) {
             final Result res = (Result) o;
+            if (LOGGER.isInfoEnabled()) {
+                try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                    res.encode(baos);
+                    LOGGER.info("ResponseCtx dump:\n{}", baos.toString("utf-8"));
+                } catch (final IOException e) {
+                    LOGGER.error("Cannot print response context", e);
+                }
+            }
             if (Result.DECISION_PERMIT != res.getDecision()) {
-                return false;
+                permit = false;
+                break;
             }
         }
-        return true;
+        return permit;
     }
 
     /**
@@ -268,7 +279,7 @@ public class XACMLAuthorizationDelegate implements FedoraAuthorizationDelegate,
         builder.addWorkspace(session.getWorkspace().getName());
         builder.addActions(actions);
 
-        // TODO builder.addRequestIP()
+        // add the original IP address
         final HttpServletRequest request = (HttpServletRequest) session.getAttribute(FEDORA_SERVLET_REQUEST);
         builder.addOriginalRequestIP(request.getRemoteAddr());
         final EvaluationCtx result = builder.build();

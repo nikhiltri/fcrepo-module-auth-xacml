@@ -36,7 +36,6 @@ import org.fcrepo.kernel.FedoraResource;
 import org.fcrepo.kernel.rdf.IdentifierTranslator;
 import org.fcrepo.kernel.rdf.impl.DefaultIdentifierTranslator;
 import org.fcrepo.kernel.services.NodeService;
-
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.attr.AnyURIAttribute;
 import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
@@ -67,8 +66,6 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
     private static final Logger LOGGER = getLogger(TripleAttributeFinderModule.class);
 
     private static BagAttribute empty_bag;
-
-    Set<AttributeValue> attr_bag = new HashSet<>();
 
     private static IdentifierTranslator idTranslator;
 
@@ -144,8 +141,11 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
         }
 
         // The resourceId is the path of the object be acted on, retrieved from the PDP evaluation context
-        final AttributeValue resourceIdAttValue = context.getResourceId();
-        if ((resourceIdAttValue.getValue().toString().isEmpty())) {
+        final EvaluationResult ridEvalRes =
+                context.getResourceAttribute(URI.create("http://www.w3.org/2001/XMLSchema#string"),
+                        URIConstants.ATTRIBUTEID_RESOURCE_ID, null);
+        final AttributeValue resourceIdAttValue = ridEvalRes.getAttributeValue();
+        if (resourceIdAttValue == null && resourceIdAttValue.getValue().toString().isEmpty()) {
             LOGGER.debug("Context should have a resource-id attribute!");
             final Status status = new Status(singletonList(STATUS_PROCESSING_ERROR), "Resource Id not found!");
             return new EvaluationResult(status);
@@ -159,6 +159,9 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
 
         try {
             resource = nodeService.getObject(session, resourceId);
+            if (resource == null) {
+                return new EvaluationResult(empty_bag);
+            }
             path = resource.getPath();
             idTranslator = new DefaultIdentifierTranslator();
 
@@ -181,7 +184,9 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
 
         // Get the values of the properties matching the type
         final Iterator<Quad> quads =
-                properties.find(Node.ANY, Node.ANY, NodeFactory.createURI(attributeType.toString()), Node.ANY);
+                properties.find(Node.ANY, Node.ANY, NodeFactory.createURI(attributeId.toString()), Node.ANY);
+
+        final Set<AttributeValue> attr_bag = new HashSet<>();
 
         // Add the properties to the bag
         while (quads.hasNext()) {

@@ -137,7 +137,7 @@ public class FedoraPolicyFinderModuleTest {
         when(mockPolicyDs.getContent()).thenReturn(this.getClass().getResourceAsStream("/xacml/testPolicy.xml"));
 
         final FedoraEvaluationCtxBuilder ctxBuilder = new FedoraEvaluationCtxBuilder();
-        ctxBuilder.addResourceID("myPath");
+        ctxBuilder.addResourceID("/myPath");
         final Set<String> subjectSet = new HashSet<>();
         ctxBuilder.addSubject("test", subjectSet);
 
@@ -182,7 +182,7 @@ public class FedoraPolicyFinderModuleTest {
         when(mockDsService.getDatastream(any(Session.class), eq(referencedId))).thenReturn(referencedPolicyDs);
 
         final FedoraEvaluationCtxBuilder ctxBuilder = new FedoraEvaluationCtxBuilder();
-        ctxBuilder.addResourceID("myPath");
+        ctxBuilder.addResourceID("/myPath");
         final Set<String> subjectSet = new HashSet<>();
         subjectSet.add("admin");
         ctxBuilder.addSubject("username", subjectSet);

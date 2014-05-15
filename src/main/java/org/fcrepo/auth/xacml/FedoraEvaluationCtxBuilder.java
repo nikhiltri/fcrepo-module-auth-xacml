@@ -18,7 +18,6 @@ package org.fcrepo.auth.xacml;
 import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_ACTION_ID;
 import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_ENVIRONMENT_ORIGINAL_IP_ADDRESS;
 import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_RESOURCE_ID;
-import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_RESOURCE_SCOPE;
 import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_RESOURCE_WORKSPACE;
 import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_SUBJECT_ID;
 import static org.fcrepo.auth.xacml.URIConstants.FCREPO_SUBJECT_ROLE;
@@ -32,6 +31,7 @@ import java.util.Set;
 import org.jboss.security.xacml.sunxacml.BasicEvaluationCtx;
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.ParsingException;
+import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
 import org.jboss.security.xacml.sunxacml.attr.StringAttribute;
 import org.jboss.security.xacml.sunxacml.ctx.Attribute;
 import org.jboss.security.xacml.sunxacml.ctx.RequestCtx;
@@ -80,7 +80,9 @@ public class FedoraEvaluationCtxBuilder {
         final AttributeFinder af = new AttributeFinder();
         af.setModules(attributeFinderModules);
         try {
-            return new BasicEvaluationCtx(rc, af);
+            final BasicEvaluationCtx result = new BasicEvaluationCtx(rc, af);
+            // result.setResourceId(resourceId);
+            return result;
         } catch (final ParsingException e) {
             throw new Error(e);
         }
@@ -97,6 +99,11 @@ public class FedoraEvaluationCtxBuilder {
     private final List<Attribute> resourceList = new ArrayList<Attribute>();
 
     /**
+     * The ID of the resource.
+     */
+    private AttributeValue resourceId;
+
+    /**
      * This list of action attributes.
      */
     private final List<Attribute> actionList = new ArrayList<Attribute>();
@@ -109,8 +116,7 @@ public class FedoraEvaluationCtxBuilder {
     /**
      * The list of attribute finder modules.
      */
-    private final List<AttributeFinderModule> attributeFinderModules =
-            new ArrayList<AttributeFinderModule>();
+    private final List<AttributeFinderModule> attributeFinderModules = new ArrayList<AttributeFinderModule>();
 
     /**
      * Add a finder module to context.
@@ -195,12 +201,12 @@ public class FedoraEvaluationCtxBuilder {
                     new Attribute(ATTRIBUTEID_ACTION_ID, null, null,
                             new StringAttribute(action));
                 actionList.add(a);
-                if ("remove".equals(action)) {
-                    final Attribute scope =
-                        new Attribute(ATTRIBUTEID_RESOURCE_SCOPE, null, null,
-                                new StringAttribute("Descendants"));
-                    resourceList.add(scope);
-                }
+                // if ("remove".equals(action)) {
+                // final Attribute scope =
+                // new Attribute(ATTRIBUTEID_RESOURCE_SCOPE, null, null,
+                // new StringAttribute("Descendants"));
+                // resourceList.add(scope);
+                // }
             }
         }
         return this;

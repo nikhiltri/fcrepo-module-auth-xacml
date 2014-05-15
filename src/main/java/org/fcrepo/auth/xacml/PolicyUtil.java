@@ -1,7 +1,26 @@
+/**
+ * Copyright 2014 DuraSpace, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.fcrepo.auth.xacml;
 
 import java.io.InputStream;
 
+import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -34,30 +53,70 @@ public class PolicyUtil {
             // Parse the policy content
             final Document doc = db.parse(policyStream);
 
-            // handle the policy, if it's a known type
-            final Element root = doc.getDocumentElement();
-            final String name = root.getTagName();
-
-            if (name.equals("Policy")) {
-                return root.getAttribute("PolicyId");
-            } else if (name.equals("PolicySet")) {
-                return root.getAttribute("PolicySetId");
-            } else {
-                // this isn't a root type that we know how to handle
-                throw new Error("Unknown root document type: " + name);
+            final String result = getID(doc);
+            if (result == null) {
+                throw new Error("Cannot find policy ID");
             }
+            return result;
         } catch (final Exception e) {
             throw new Error("Unable to parse policy", e);
         }
     }
 
     /**
+     * Get the ID of the XACML policy document.
+     *
+     * @param doc the DOM
+     * @return the ID
+     */
+    public static String getID(final Document doc) {
+        // handle the policy, if it's a known type
+        final Element root = doc.getDocumentElement();
+        final String name = root.getTagName();
+        if (name.equals("Policy")) {
+            return root.getAttribute("PolicyId");
+        } else if (name.equals("PolicySet")) {
+            return root.getAttribute("PolicySetId");
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Gets the repository path for a policy ID.
-     * 
+     *
      * @param id the policy id
      * @return the repository path
      */
     public static String getPathForId(final String id) {
         return id.substring(URIConstants.POLICY_URI_PREFIX.length());
+    }
+
+    /**
+     * Find the nearest real Modeshape node for a given Modeshape path.
+     *
+     * @param modepath the path in ModeShape
+     * @param session a session
+     * @return a Node in session
+     */
+    public static Node getFirstRealNode(final String modepath, final Session session) {
+        Node node = null;
+        for (String path = modepath; path.indexOf("/") >= 0; path = path.substring(0, path.lastIndexOf("/"))) {
+            try {
+                node = session.getNode(path);
+                break;
+            } catch (final PathNotFoundException expected) {
+            } catch (final RepositoryException e) {
+                throw new Error("Cannot reach repository", e);
+            }
+        }
+        if (node == null) {
+            try {
+                node = session.getRootNode();
+            } catch (final RepositoryException e) {
+                throw new Error("Cannot reach repository", e);
+            }
+        }
+        return node;
     }
 }
