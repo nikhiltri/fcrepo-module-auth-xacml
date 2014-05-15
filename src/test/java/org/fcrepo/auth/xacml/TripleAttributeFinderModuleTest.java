@@ -15,20 +15,6 @@
  */
 package org.fcrepo.auth.xacml;
 
-import org.fcrepo.http.commons.session.SessionFactory;
-import org.fcrepo.kernel.services.NodeService;
-import org.jboss.security.xacml.sunxacml.EvaluationCtx;
-import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
-import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.w3c.dom.Node;
-
-import java.net.URI;
-import java.util.Set;
-
 import static org.jboss.security.xacml.sunxacml.attr.AttributeDesignator.RESOURCE_TARGET;
 import static org.jboss.security.xacml.sunxacml.attr.AttributeDesignator.SUBJECT_TARGET;
 import static org.junit.Assert.assertEquals;
@@ -36,30 +22,50 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.MockitoAnnotations.Mock;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+
+import java.net.URI;
+import java.util.Set;
+
+import javax.jcr.RepositoryException;
+
+import org.fcrepo.http.commons.session.SessionFactory;
+import org.fcrepo.kernel.services.NodeService;
+
+import org.jboss.security.xacml.sunxacml.EvaluationCtx;
+import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
+import org.jboss.security.xacml.sunxacml.attr.BagAttribute;
+import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
+import org.jboss.security.xacml.sunxacml.ctx.Status;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.w3c.dom.Node;
 
 /**
  * @author Andrew Woods
- *         Date: 5/9/14
+ * @author Scott Prater
  */
 public class TripleAttributeFinderModuleTest {
 
     private TripleAttributeFinderModule finder;
 
     @Mock
-    private SessionFactory sessionFactory;
+    private SessionFactory mockSessionFactory;
 
     @Mock
-    private NodeService nodeService;
+    private NodeService mockNodeService;
 
     @Before
     public void setUp() throws Exception {
         initMocks(this);
 
         finder = new TripleAttributeFinderModule();
-        finder.sessionFactory = sessionFactory;
-        finder.nodeService = nodeService;
+        finder.sessionFactory = mockSessionFactory;
+        finder.nodeService = mockNodeService;
     }
 
     @After
@@ -96,7 +102,7 @@ public class TripleAttributeFinderModuleTest {
         final String contextPath = "contextPath";
         final Node namespaceNode = null;
         final URI attributeType = URI.create("uri:att-type");
-        final EvaluationCtx context = evaluationCtx();
+        final EvaluationCtx context = evaluationCtx("/path/to/resource");
         final String xpathVersion = "xpathVersion";
 
         final EvaluationResult result = finder.findAttribute(contextPath,
@@ -107,24 +113,15 @@ public class TripleAttributeFinderModuleTest {
         assertIsEmptyResult(result);
     }
 
-    private void assertIsEmptyResult(EvaluationResult result) {
-        final AttributeValue attributeValue = result.getAttributeValue();
-        assertNotNull("Evaluation.attributeValue shoud not be null!", attributeValue);
-        assertTrue("Evaluation.attributeValue should be a bag!", attributeValue.isBag());
-
-        final Object value = attributeValue.getValue();
-        assertNull("EvaluationResult value should be null!", value);
-    }
-
     @Test
     public void testFindAttributeWrongDesignator() throws Exception {
-        assertIsEmptyResult(doFindAttribute(SUBJECT_TARGET));
+        assertIsEmptyResult(doFindAttribute(SUBJECT_TARGET, "/path/to/resource"));
     }
 
     @Test
     @Ignore("Until implemented")
     public void testFindAttribute() {
-        EvaluationResult result = doFindAttribute();
+        final EvaluationResult result = doFindAttribute("/path/to/resource");
 
         final AttributeValue attributeValue = result.getAttributeValue();
         assertNotNull("Evaluation.attributeValue shoud not be null!", attributeValue);
@@ -132,18 +129,55 @@ public class TripleAttributeFinderModuleTest {
 
         final Object value = attributeValue.getValue();
         assertNotNull("EvaluationResult value should not be null!", value);
+        // assertEquals((String)value, "SamIAm");
     }
 
-    private EvaluationResult doFindAttribute() {
-        return doFindAttribute(-1);
+    @Test
+    public void testFindAttributeBySelector() {
+        final URI attributeType = URI.create("uri:att-type");
+        final EvaluationCtx context = evaluationCtx("/path/to/resource");
+        final EvaluationResult result = finder.findAttribute("/", null, attributeType, context, "2.0");
+        final BagAttribute bag = (BagAttribute) result.getAttributeValue();
+        assertTrue("EvaluationResult should be a bag!", bag.isBag());
+        assertTrue("Attribute bag should be empty!", bag.isEmpty());
     }
 
-    private EvaluationResult doFindAttribute(final int argDesignatorType) {
+    @Test
+    public void testFindAttributeInvalidSession() throws RepositoryException {
+        when(mockSessionFactory.getInternalSession()).thenThrow(new RepositoryException());
+        final EvaluationResult result = doFindAttribute("/path/to/resource");
+        final String status = (String) result.getStatus().getCode().get(0);
+        assertEquals("Evaluation status should be STATUS_PROCESSING_ERROR!", status,
+                Status.STATUS_PROCESSING_ERROR);
+    }
+
+    @Test
+    public void testFindAttributeNoResourceId() {
+        final EvaluationResult result = doFindAttribute(null);
+        final String status = (String) result.getStatus().getCode().get(0);
+        assertEquals("Evaluation status should be STATUS_PROCESSING_ERROR!", status, Status.STATUS_PROCESSING_ERROR);
+    }
+
+    private void assertIsEmptyResult(final EvaluationResult result) {
+        final BagAttribute attributeValue = (BagAttribute) result.getAttributeValue();
+        assertNotNull("Evaluation.attributeValue shoud not be null!", attributeValue);
+        assertTrue("Evaluation.attributeValue should be a bag!", attributeValue.isBag());
+
+        assertTrue("Attribute bag should be empty!", attributeValue.isEmpty());
+        final Object value = attributeValue.getValue();
+        assertNull("EvaluationResult value should be null!", value);
+    }
+
+    private EvaluationResult doFindAttribute(final String resourceId) {
+        return doFindAttribute(-1, resourceId);
+    }
+
+    private EvaluationResult doFindAttribute(final int argDesignatorType, final String resourceId) {
         final URI attributeType = URI.create("uri:att-type");
         final URI attributeId = URI.create("uri:att-id");
         final URI issuer = null;
         final URI subjectCategory = null;
-        final EvaluationCtx context = evaluationCtx();
+        final EvaluationCtx context = evaluationCtx(resourceId);
         final int designatorType = argDesignatorType == -1 ? RESOURCE_TARGET : argDesignatorType;
 
         final EvaluationResult result = finder.findAttribute(attributeType,
@@ -157,9 +191,11 @@ public class TripleAttributeFinderModuleTest {
         return result;
     }
 
-    private EvaluationCtx evaluationCtx() {
+    private EvaluationCtx evaluationCtx(final String resourceId) {
         final FedoraEvaluationCtxBuilder builder = new FedoraEvaluationCtxBuilder();
-        builder.addResourceID("/path/to/resource");
+        if (resourceId != null) {
+            builder.addResourceID(resourceId);
+        }
         builder.addSubject("user", null);
 
         return builder.build();
