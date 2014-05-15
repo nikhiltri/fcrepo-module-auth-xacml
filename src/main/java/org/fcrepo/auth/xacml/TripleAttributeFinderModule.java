@@ -36,6 +36,7 @@ import org.fcrepo.kernel.FedoraResource;
 import org.fcrepo.kernel.rdf.IdentifierTranslator;
 import org.fcrepo.kernel.rdf.impl.DefaultIdentifierTranslator;
 import org.fcrepo.kernel.services.NodeService;
+
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.attr.AnyURIAttribute;
 import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
@@ -43,7 +44,6 @@ import org.jboss.security.xacml.sunxacml.attr.BagAttribute;
 import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
 import org.jboss.security.xacml.sunxacml.ctx.Status;
 import org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule;
-import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -120,7 +120,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
                                                 final URI subjectCategory,
                                                 final EvaluationCtx context,
                                                 final int designatorType) {
-        LOGGER.debug("###findAttribute({}, {}, {}, {}, {}, {})",
+        LOGGER.debug("findAttribute({}, {}, {}, {}, {}, {})",
                      attributeType, attributeId, issuer, subjectCategory, context, designatorType);
 
         empty_bag = createEmptyBag(attributeType);
@@ -145,7 +145,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
                 context.getResourceAttribute(URI.create("http://www.w3.org/2001/XMLSchema#string"),
                         URIConstants.ATTRIBUTEID_RESOURCE_ID, null);
         final AttributeValue resourceIdAttValue = ridEvalRes.getAttributeValue();
-        if (resourceIdAttValue == null && resourceIdAttValue.getValue().toString().isEmpty()) {
+        if (resourceIdAttValue.getValue().toString().isEmpty()) {
             LOGGER.debug("Context should have a resource-id attribute!");
             final Status status = new Status(singletonList(STATUS_PROCESSING_ERROR), "Resource Id not found!");
             return new EvaluationResult(status);
@@ -188,7 +188,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
             properties = resource.getTriples(idTranslator).asModel();
             graphNode = idTranslator.getSubject(resource.getPath());
         } catch (final RepositoryException e) {
-            Log.debug(e);
+            LOGGER.debug("Cannot retrieve any properties for [{}]:  {}", resourceId, e);
             final Status status =
                     new Status(singletonList(STATUS_PROCESSING_ERROR),
                             "Error retrieving properties for [" + path + "]!");
