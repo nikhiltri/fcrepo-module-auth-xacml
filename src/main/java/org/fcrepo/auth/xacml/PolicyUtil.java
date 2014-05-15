@@ -16,6 +16,9 @@
 package org.fcrepo.auth.xacml;
 
 import java.io.InputStream;
+import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
@@ -24,6 +27,9 @@ import javax.jcr.Session;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.jboss.security.xacml.sunxacml.EvaluationCtx;
+import org.jboss.security.xacml.sunxacml.attr.AttributeValue;
+import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -118,5 +124,23 @@ public class PolicyUtil {
             }
         }
         return node;
+    }
+
+    /**
+     * Get the action ids.
+     * 
+     * @param context the evaluation context
+     * @return a set of actions
+     */
+    public static Set<String> getActions(final EvaluationCtx context) {
+        final Set<String> result = new HashSet<String>();
+        final EvaluationResult eval =
+                context.getActionAttribute(URI.create("http://www.w3.org/2001/XMLSchema#string"),
+                        URIConstants.ATTRIBUTEID_ACTION_ID, null);
+        if (eval.getStatus() == null) {
+            final AttributeValue val = eval.getAttributeValue();
+            result.add(val.getValue().toString());
+        }
+        return result;
     }
 }

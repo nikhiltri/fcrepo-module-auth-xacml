@@ -43,14 +43,14 @@ import org.jboss.security.xacml.sunxacml.attr.BagAttribute;
 import org.jboss.security.xacml.sunxacml.cond.EvaluationResult;
 import org.jboss.security.xacml.sunxacml.ctx.Status;
 import org.jboss.security.xacml.sunxacml.finder.AttributeFinderModule;
+import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.NodeFactory;
-import com.hp.hpl.jena.sparql.core.DatasetGraph;
-import com.hp.hpl.jena.sparql.core.Quad;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.rdf.model.Resource;
 
 /**
  * Finds resource attributes based on triples in the Fedora graph. Retrieves values where the attribute URI matches the
@@ -77,7 +77,6 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
 
     @Autowired
     protected NodeService nodeService;
-
 
     /**
      * Supported designator types.
@@ -128,6 +127,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
 
         // Make sure this is a Resource attribute
         if (designatorType != RESOURCE_TARGET) {
+            LOGGER.debug("Not looking for a resource attribute");
             return new EvaluationResult(empty_bag);
         }
 
@@ -151,15 +151,21 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
             return new EvaluationResult(status);
         }
 
-        final String resourceId = (String) resourceIdAttValue.getValue();
+        String resourceId = (String) resourceIdAttValue.getValue();
 
-        // Get the resource be acted on
+        // if dealing with set_property action, use parent node for triples
+        final Set<String> actions = PolicyUtil.getActions(context);
+        if (actions.contains("set_property") || actions.contains("add_node")) {
+            resourceId = resourceId.substring(0, resourceId.lastIndexOf("/"));
+        }
+
+        // Get the resource to be acted on
         final FedoraResource resource;
         final String path;
-
         try {
             resource = nodeService.getObject(session, resourceId);
             if (resource == null) {
+                LOGGER.debug("Cannot find a fedora resource for {}", resourceId);
                 return new EvaluationResult(empty_bag);
             }
             path = resource.getPath();
@@ -170,28 +176,34 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
             return new EvaluationResult(empty_bag);
         }
 
-        // Get the properties of the resource
-        final DatasetGraph properties;
+        LOGGER.debug("Looking for properties on modeshape path {} with repo path {}", resourceId, path);
 
+        // Get the properties of the resource
+        Model properties;
+        Resource graphNode;
         try {
-            properties = resource.getPropertiesDataset(idTranslator).asDatasetGraph();
+            properties = resource.getTriples(idTranslator).asModel();
+            graphNode = idTranslator.getSubject(resource.getPath());
         } catch (final RepositoryException e) {
+            Log.debug(e);
             final Status status =
                     new Status(singletonList(STATUS_PROCESSING_ERROR),
                             "Error retrieving properties for [" + path + "]!");
             return new EvaluationResult(status);
         }
 
+        LOGGER.debug("Looking for properties on graph node: {}", graphNode.getURI());
+
         // Get the values of the properties matching the type
-        final Iterator<Quad> quads =
-                properties.find(Node.ANY, Node.ANY, NodeFactory.createURI(attributeId.toString()), Node.ANY);
+        final Iterator<RDFNode> matches =
+                properties.listObjectsOfProperty(graphNode, properties.createProperty(attributeId.toString()));
 
         final Set<AttributeValue> attr_bag = new HashSet<>();
 
         // Add the properties to the bag
-        while (quads.hasNext()) {
-            final Quad quad = quads.next();
-            final String uri = quad.getObject().getURI();
+        while (matches.hasNext()) {
+            final RDFNode match = matches.next();
+            final String uri = match.asResource().getURI();
             LOGGER.debug("Found property: {}", uri);
             attr_bag.add(new AnyURIAttribute(URI.create(uri)));
         }

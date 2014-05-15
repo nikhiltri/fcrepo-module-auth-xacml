@@ -8,8 +8,5 @@
   <PolicySetIdReference>info:fedora/policies/ReaderRolePolicySet</PolicySetIdReference>
   <PolicySetIdReference>info:fedora/policies/WriterRolePolicySet</PolicySetIdReference>
   <PolicySetIdReference>info:fedora/policies/AdminRolePolicySet</PolicySetIdReference>
-  <Policy PolicyId="fcrepo-xacml:WithoutRoleDenyPolicy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable">
-    <Target/>
-    <Rule RuleId="fcrepo-xacml:WithoutRoleDenyRule" Effect="Deny"/>
-  </Policy>
+  <PolicySetIdReference>info:fedora/policies/GlobalPermissionPolicySet</PolicySetIdReference>
 </PolicySet>
