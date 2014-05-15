@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PolicySet xmlns="urn:oasis:names:tc:xacml:2.0:policy:schema:os"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="urn:oasis:names:tc:xacml:2.0:policy:schema:os http://docs.oasis-open.org/xacml/2.0/access_control-xacml-2.0-policy-schema-os.xsd"
+           PolicySetId="info:fedora/policies/PreventReadingMasterFilesPolicySet"
+           PolicyCombiningAlgId="urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:permit-overrides">
+    <Description>
+        A policy set that prevents access to any files with the mime type "image/tiff" that
+        have the "http://example.com/mixins#master" type (example-mixins:master mixin).
+        This is just an example policy for use in testing and is not a recommended way to
+        secure one's Fedora repository.
+    </Description>
+    <Target/>
+    <Policy PolicyId="fcrepo-xacml:PreventReadingMasterFilesPolicySet"
+            RuleCombiningAlgId="urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable">
+        <Target />
+        <Rule RuleId="fcrepo-xacml:DenyIfMimeTypeIsImageTiffAndHasMixin" Effect="Deny">
+           <Target>
+             <Resources>
+               <Resource>
+                 <ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                   <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">image/tiff</AttributeValue>
+                   <ResourceAttributeDesignator AttributeId="http://fedora.info/definitions/v4/repository#mimeType" 
+                     DataType="http://www.w3.org/2001/XMLSchema#string"/>
+                 </ResourceMatch>
+                 <ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:anyURI-equal">
+                   <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#anyURI">http://example.com/mixins#master</AttributeValue>
+                   <ResourceAttributeDesignator AttributeId="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+                     DataType="http://www.w3.org/2001/XMLSchema#anyURI"/>
+                 </ResourceMatch>
+               </Resource>
+             </Resources>
+           </Target> 
+        </Rule>
+        <Rule RuleId="fcrepo-xacml:PermitInOtherCases" Effect="Permit"/>
+    </Policy>
+</PolicySet>
