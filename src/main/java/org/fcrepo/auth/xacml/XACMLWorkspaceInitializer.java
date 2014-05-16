@@ -36,14 +36,12 @@ import org.modeshape.jcr.api.nodetype.NodeTypeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * Sets up node types and default policies for the XACML Authorization Delegate.
  *
  * @author Gregory Jansen
  */
-@Component
 public class XACMLWorkspaceInitializer {
 
     /**

@@ -10,7 +10,7 @@
 	<logger name="org.fcrepo" additivity="false" level="${log.fcrepo:-INFO}">
         <appender-ref ref="STDOUT"/>
     </logger>
-    <logger name="org.fcrepo.auth" additivity="false" level="${log.fcrepo.auth:-DEBUG}">
+    <logger name="org.fcrepo.auth" additivity="false" level="${log.fcrepo.auth:-INFO}">
         <appender-ref ref="STDOUT"/>
     </logger>
     <root additivity="false" level="WARN">
