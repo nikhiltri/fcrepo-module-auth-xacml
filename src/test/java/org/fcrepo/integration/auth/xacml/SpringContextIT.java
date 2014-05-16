@@ -29,8 +29,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @date May 6, 2014
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"/spring-test/repo.xml",
-        "/spring-test/rest.xml"})
+@ContextConfiguration(locations = {"/spring-test/test-container.xml"})
 public class SpringContextIT {
 
     /**

@@ -176,10 +176,10 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
         boolean permit = true;
         for (final Object o : resp.getResults()) {
             final Result res = (Result) o;
-            if (LOGGER.isInfoEnabled()) {
+            if (LOGGER.isDebugEnabled()) {
                 try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
                     res.encode(baos);
-                    LOGGER.info("ResponseCtx dump:\n{}", baos.toString("utf-8"));
+                    LOGGER.debug("ResponseCtx dump:\n{}", baos.toString("utf-8"));
                 } catch (final IOException e) {
                     LOGGER.error("Cannot print response context", e);
                 }
@@ -231,7 +231,7 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
         // Triple attribute finder will look in modeshape for any valid
         // predicate URI, therefore it falls last in this list.
         builder.addFinderModule(tripleResourceAttributeFinderModule);
-        LOGGER.info("effective roles: {}", roles);
+        LOGGER.debug("effective roles: {}", roles);
         final Principal user =
                 (Principal) session.getAttribute(FEDORA_USER_PRINCIPAL);
         builder.addSubject(user.getName(), roles);

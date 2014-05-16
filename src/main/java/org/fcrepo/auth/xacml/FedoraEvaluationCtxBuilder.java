@@ -69,10 +69,10 @@ public class FedoraEvaluationCtxBuilder {
         final RequestCtx rc =
                 new RequestCtx(subjectList, resourceList, actionList,
                         environmentList);
-        if (LOGGER.isInfoEnabled()) {
+        if (LOGGER.isDebugEnabled()) {
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
                 rc.encode(baos);
-                LOGGER.info("RequestCtx dump:\n{}", baos.toString("utf-8"));
+                LOGGER.debug("RequestCtx dump:\n{}", baos.toString("utf-8"));
             } catch (final IOException e) {
                 LOGGER.error("Cannot print request context", e);
             }

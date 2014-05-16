@@ -107,7 +107,7 @@ public class PolicyUtil {
      */
     public static Node getFirstRealNode(final String modepath, final Session session) {
         Node node = null;
-        for (String path = modepath; path.indexOf("/") >= 0; path = path.substring(0, path.lastIndexOf("/"))) {
+        for (String path = modepath; path.indexOf("/{") >= 0; path = path.substring(0, path.lastIndexOf("/{"))) {
             try {
                 node = session.getNode(path);
                 break;
@@ -128,7 +128,7 @@ public class PolicyUtil {
 
     /**
      * Get the action ids.
-     * 
+     *
      * @param context the evaluation context
      * @return a set of actions
      */

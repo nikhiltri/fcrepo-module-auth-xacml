@@ -24,7 +24,7 @@
           </Resource>
           <Resource>
             <ResourceMatch MatchId="urn:oasis:names:tc:xacml:1.0:function:regexp-string-match">
-              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">\{http://fedora\.info/definitions/v4/authorization\}</AttributeValue>
+              <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">\{http://fedora\.info/definitions/v4/authorization#\}</AttributeValue>
               <ResourceAttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-id" DataType="http://www.w3.org/2001/XMLSchema#string"/>
             </ResourceMatch>
           </Resource>

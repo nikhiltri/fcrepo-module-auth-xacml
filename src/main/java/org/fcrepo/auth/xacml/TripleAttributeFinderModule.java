@@ -120,7 +120,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
                                                 final URI subjectCategory,
                                                 final EvaluationCtx context,
                                                 final int designatorType) {
-        LOGGER.info("###findAttribute({}, {}, {}, {}, {}, {})",
+        LOGGER.debug("###findAttribute({}, {}, {}, {}, {}, {})",
                      attributeType, attributeId, issuer, subjectCategory, context, designatorType);
 
         empty_bag = createEmptyBag(attributeType);
@@ -156,7 +156,10 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
         // if dealing with set_property action, use parent node for triples
         final Set<String> actions = PolicyUtil.getActions(context);
         if (actions.contains("set_property") || actions.contains("add_node")) {
-            resourceId = resourceId.substring(0, resourceId.lastIndexOf("/"));
+            resourceId = resourceId.substring(0, resourceId.lastIndexOf("/{"));
+            if (resourceId.length() == 0) {
+                resourceId = "/";
+            }
         }
 
         // Get the resource to be acted on
