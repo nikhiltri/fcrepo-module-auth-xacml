@@ -34,7 +34,7 @@ import javax.jcr.Session;
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.FedoraResource;
 import org.fcrepo.kernel.rdf.IdentifierTranslator;
-import org.fcrepo.kernel.rdf.impl.DefaultIdentifierTranslator;
+import org.fcrepo.kernel.impl.rdf.impl.DefaultIdentifierTranslator;
 import org.fcrepo.kernel.services.NodeService;
 
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;

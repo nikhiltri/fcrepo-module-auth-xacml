@@ -10,10 +10,9 @@
   <!-- Context that supports the actual ModeShape JCR itself -->
   <context:annotation-config />
 
-  <context:component-scan base-package="org.fcrepo.kernel.services" />
-  <context:component-scan base-package="org.fcrepo.auth.xacml" />
+  <context:component-scan base-package="org.fcrepo.kernel,org.fcrepo.auth.xacml" />
 
-  <bean name="modeshapeRepofactory" class="org.fcrepo.kernel.spring.ModeShapeRepositoryFactoryBean"
+  <bean name="modeshapeRepofactory" class="org.fcrepo.kernel.impl.spring.ModeShapeRepositoryFactoryBean"
     depends-on="authenticationProvider">
     <property name="repositoryConfiguration" value="${fcrepo.modeshape.configuration:repository.json}" />
   </bean>
@@ -28,5 +27,7 @@
     <property name="initialPoliciesDirectory" value="${fcrepo.xacml.initial.policies.dir:src/main/resources/policies}"/>
     <property name="initialRootPolicyFile" value="${fcrepo.xacml.initial.root.policy.file:src/main/resources/policies/GlobalRolesPolicySet.xml}"/>
   </bean>
+
+  <bean id="connectionManager" class="org.apache.http.impl.conn.PoolingHttpClientConnectionManager"/>
 
 </beans>
