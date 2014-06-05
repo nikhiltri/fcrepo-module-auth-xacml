@@ -113,12 +113,6 @@
     </dependency>
     <dependency>
       <groupId>org.fcrepo</groupId>
-      <artifactId>fcrepo-build-tools</artifactId>
-      <version>${fcrepo-build-tools.version}</version>
-      <type>bundle</type>
-    </dependency>
-    <dependency>
-      <groupId>org.fcrepo</groupId>
       <artifactId>fcrepo-http-commons</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
