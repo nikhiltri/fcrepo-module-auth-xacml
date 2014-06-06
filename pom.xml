@@ -8,6 +8,7 @@
   <artifactId>fcrepo-module-auth-xacml</artifactId>
   <name>Fedora Repository XACML Authorization Module</name>
   <description>Fedora Repository XACML module</description>
+
   <repositories>
     <repository>
       <id>snapshots-repo</id>
@@ -20,6 +21,16 @@
       </snapshots>
     </repository>
   </repositories>
+
+  <scm>
+    <connection>scm:git:git://github.com/fcrepo4/${project.artifactId}.git
+    </connection>
+    <developerConnection>scm:git:git@github.com:fcrepo4/${project.artifactId}.git
+    </developerConnection>
+    <url>https://github.com/fcrepo4/fcrepo-module-auth-xacml</url>
+    <tag>HEAD</tag>
+  </scm>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -146,7 +157,13 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
       </plugin>
+
+      <plugin>
+        <groupId>com.github.github</groupId>
+        <artifactId>site-maven-plugin</artifactId>
+      </plugin>
     </plugins>
 
   </build>
+
 </project>
