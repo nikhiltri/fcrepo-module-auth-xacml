@@ -19,9 +19,6 @@ package org.fcrepo.auth.xacml;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
@@ -41,8 +38,6 @@ import org.jboss.security.xacml.sunxacml.finder.impl.CurrentEnvModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 /**
@@ -52,26 +47,22 @@ import org.springframework.stereotype.Component;
  * @author Gregory Jansen
  */
 @Component("fad")
-public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelegate implements
-        ApplicationContextAware {
+public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelegate {
 
     /**
      * Class-level logger.
      */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(XACMLAuthorizationDelegate.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(XACMLAuthorizationDelegate.class);
 
     /**
      * The name of Fedora's subject finder module bean. (prototype)
      */
-    private static final String SUBJECT_ATTRIBUTE_FINDER_BEAN =
-            "subjectAttributeFinderModule";
+    private static final String SUBJECT_ATTRIBUTE_FINDER_BEAN = "subjectAttributeFinderModule";
 
     /**
      * The name of Fedora's environment finder module bean. (prototype)
      */
-    private static final String ENVIRONMENT_ATTRIBUTE_FINDER_BEAN =
-            "environmentAttributeFinderModule";
+    private static final String ENVIRONMENT_ATTRIBUTE_FINDER_BEAN = "environmentAttributeFinderModule";
 
     @Autowired
     private PDPFactory pdpFactory;
@@ -82,24 +73,9 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
     private PDP pdp = null;
 
     /**
-     * @return the pdp
-     */
-    public final PDP getPdp() {
-        return pdp;
-    }
-
-    /**
-     * @param pdp the pdp to set
-     */
-    public final void setPdp(final PDP pdp) {
-        this.pdp = pdp;
-    }
-
-    /**
      * The standard environment attribute finder, supplies date/time.
      */
-    private CurrentEnvModule currentEnvironmentAttributeModule =
-            new CurrentEnvModule();
+    private CurrentEnvModule currentEnvironmentAttributeModule = new CurrentEnvModule();
 
     /**
      * The triple-based resource attribute finder module.
@@ -112,11 +88,6 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
      */
     @Autowired
     private SparqlResourceAttributeFinderModule sparqlResourceAttributeFinderModule;
-
-    /**
-     * The Spring application context.
-     */
-    private ApplicationContext applicationContext;
 
     /**
      * The provider for access roles.
@@ -148,31 +119,19 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
     }
 
     /*
-     * The application context is used to create beans from prototypes.
-     * (non-Javadoc)
-     * @see
-     * org.springframework.context.ApplicationContextAware#setApplicationContext
-     * (org.springframework.context.ApplicationContext)
-     */
-    @Override
-    public final void
-    setApplicationContext(final ApplicationContext appContext) {
-        this.applicationContext = appContext;
-    }
-
-    /*
      * (non-Javadoc)
      * @see
      * org.fcrepo.auth.common.FedoraAuthorizationDelegate#hasPermission(javax
      * .jcr.Session, org.modeshape.jcr.value.Path, java.lang.String[])
      */
     @Override
-    public boolean rolesHavePermission(final Session session, final String absPath, final String[] actions,
-            final Set<String> roles) {
-        final EvaluationCtx evaluationCtx =
-                buildEvaluationContext(session, absPath, actions, roles);
-
+    public boolean rolesHavePermission(final Session session,
+                                       final String absPath,
+                                       final String[] actions,
+                                       final Set<String> roles) {
+        final EvaluationCtx evaluationCtx = buildEvaluationContext(session, absPath, actions, roles);
         final ResponseCtx resp = pdp.evaluate(evaluationCtx);
+
         boolean permit = true;
         for (final Object o : resp.getResults()) {
             final Result res = (Result) o;
@@ -181,7 +140,7 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
                     res.encode(baos);
                     LOGGER.debug("ResponseCtx dump:\n{}", baos.toString("utf-8"));
                 } catch (final IOException e) {
-                    LOGGER.error("Cannot print response context", e);
+                    LOGGER.info("Cannot print response context", e);
                 }
             }
             if (Result.DECISION_PERMIT != res.getDecision()) {
@@ -202,9 +161,10 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
      * @return an attribute finder
      */
     private EvaluationCtx buildEvaluationContext(final Session session,
-            final String absPath, final String[] actions, final Set<String> roles) {
-        final FedoraEvaluationCtxBuilder builder =
-                new FedoraEvaluationCtxBuilder();
+                                                 final String absPath,
+                                                 final String[] actions,
+                                                 final Set<String> roles) {
+        final FedoraEvaluationCtxBuilder builder = new FedoraEvaluationCtxBuilder();
         builder.addFinderModule(currentEnvironmentAttributeModule);
         builder.addFinderModule(sparqlResourceAttributeFinderModule);
 
@@ -232,8 +192,8 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
         // predicate URI, therefore it falls last in this list.
         builder.addFinderModule(tripleResourceAttributeFinderModule);
         LOGGER.debug("effective roles: {}", roles);
-        final Principal user =
-                (Principal) session.getAttribute(FEDORA_USER_PRINCIPAL);
+
+        final Principal user = (Principal) session.getAttribute(FEDORA_USER_PRINCIPAL);
         builder.addSubject(user.getName(), roles);
         builder.addResourceID(absPath);
         builder.addWorkspace(session.getWorkspace().getName());
@@ -242,30 +202,7 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
         // add the original IP address
         final HttpServletRequest request = (HttpServletRequest) session.getAttribute(FEDORA_SERVLET_REQUEST);
         builder.addOriginalRequestIP(request.getRemoteAddr());
-        final EvaluationCtx result = builder.build();
-        return result;
-    }
-
-    /**
-     * Gathers effective roles.
-     *
-     * @param acl effective assignments for path
-     * @param principals effective principals
-     * @return set of effective content roles
-     */
-    public static Set<String>
-    resolveUserRoles(final Map<String, List<String>> acl,
-                    final Set<Principal> principals) {
-        final Set<String> roles = new HashSet<>();
-        for (final Principal p : principals) {
-            final List<String> matchedRoles = acl.get(p.getName());
-            if (matchedRoles != null) {
-                LOGGER.debug("request principal matched role assignment: {}", p
-                        .getName());
-                roles.addAll(matchedRoles);
-            }
-        }
-        return roles;
+        return builder.build();
     }
 
 }

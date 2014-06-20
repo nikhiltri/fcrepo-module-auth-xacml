@@ -55,10 +55,9 @@ public class PolicyUtil {
             final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setIgnoringComments(true);
 
-            DocumentBuilder db = null;
             factory.setNamespaceAware(true);
             factory.setValidating(false);
-            db = factory.newDocumentBuilder();
+            final DocumentBuilder db = factory.newDocumentBuilder();
 
             // Parse the policy content
             final Document doc = db.parse(policyStream);
@@ -111,7 +110,7 @@ public class PolicyUtil {
      */
     public static Node getFirstRealNode(final String modepath, final Session session) {
         Node node = null;
-        for (String path = modepath; path.indexOf("/{") >= 0; path = path.substring(0, path.lastIndexOf("/{"))) {
+        for (String path = modepath; path.contains("/{"); path = path.substring(0, path.lastIndexOf("/{"))) {
             try {
                 node = session.getNode(path);
                 break;

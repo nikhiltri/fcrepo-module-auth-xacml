@@ -36,23 +36,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class PDPFactory {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(PDPFactory.class);
+
     @Autowired
     private FedoraPolicyFinderModule fedoraPolicyFinderModule;
 
     @Autowired
     private FedoraResourceFinderModule fedoraResourceFinderModule;
-
-    /**
-     * Creates the factory.
-     */
-    public PDPFactory() {
-    }
-
-    /**
-     * Class logger.
-     */
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(PDPFactory.class);
 
     /**
      * Make a PDP for the Fedora environment.
@@ -62,14 +52,12 @@ public class PDPFactory {
      */
     public final PDP makePDP() {
         final PolicyFinder policyFinder = new PolicyFinder();
-        policyFinder
-                .setModules(Collections.singleton(fedoraPolicyFinderModule));
+        policyFinder.setModules(Collections.singleton(fedoraPolicyFinderModule));
+
         final ResourceFinder resourceFinder = new ResourceFinder();
-        resourceFinder.setModules(Collections
-                .singletonList(fedoraResourceFinderModule));
-        final PDPConfig pdpConfig =
-                new PDPConfig(new AttributeFinder(), policyFinder,
-                        resourceFinder);
+        resourceFinder.setModules(Collections.singletonList(fedoraResourceFinderModule));
+
+        final PDPConfig pdpConfig = new PDPConfig(new AttributeFinder(), policyFinder, resourceFinder);
         final PDP pdp = new PDP(pdpConfig);
         LOGGER.info("XACML Policy Decision Point (PDP) initialized");
         return pdp;

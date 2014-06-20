@@ -31,7 +31,6 @@ import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.Datastream;
 import org.fcrepo.kernel.exception.InvalidChecksumException;
 import org.fcrepo.kernel.services.DatastreamService;
-import org.fcrepo.kernel.services.NodeService;
 import org.modeshape.jcr.api.nodetype.NodeTypeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,9 +55,6 @@ public class XACMLWorkspaceInitializer {
     private SessionFactory sessionFactory;
 
     @Autowired
-    private NodeService nodeService;
-
-    @Autowired
     private DatastreamService datastreamService;
 
     private File initialPoliciesDirectory;
@@ -66,31 +62,25 @@ public class XACMLWorkspaceInitializer {
     private File initialRootPolicyFile;
 
     /**
-     * @return the initialRootPolicyFile
+     * Constructor
+     *
+     * @param initialPoliciesDirectory of default policies
+     * @param initialRootPolicyFile    defining root policy
      */
-    public File getInitialRootPolicyFile() {
-        return initialRootPolicyFile;
-    }
+    public XACMLWorkspaceInitializer(final File initialPoliciesDirectory, final File initialRootPolicyFile) {
+        if (null == initialPoliciesDirectory) {
+            throw new IllegalArgumentException("InitialPolicyDirectory is null!");
+        }
+        if (null == initialPoliciesDirectory.list() || 0 == initialPoliciesDirectory.list().length) {
+            throw new IllegalArgumentException("InitialPolicyDirectory does not exist or is empty! " +
+                                                       initialPoliciesDirectory.getAbsolutePath());
+        }
+        if (null == initialRootPolicyFile || !initialRootPolicyFile.exists()) {
+            throw new IllegalArgumentException("InitialRootPolicyFile is null or does not exist!");
+        }
 
-    /**
-     * @param initialRootPolicyFile the initialRootPolicyFile to set
-     */
-    public void setInitialRootPolicyFile(final File initialRootPolicyFile) {
-        this.initialRootPolicyFile = initialRootPolicyFile;
-    }
-
-    /**
-     * @return the initialPoliciesDirectory
-     */
-    public File getInitialPoliciesDirectory() {
-        return initialPoliciesDirectory;
-    }
-
-    /**
-     * @param initialPoliciesDirectory the initialPoliciesDirectory to set
-     */
-    public void setInitialPoliciesDirectory(final File initialPoliciesDirectory) {
         this.initialPoliciesDirectory = initialPoliciesDirectory;
+        this.initialRootPolicyFile = initialRootPolicyFile;
     }
 
     /**
@@ -100,6 +90,56 @@ public class XACMLWorkspaceInitializer {
         registerNodeTypes();
         loadInitialPolicies();
         linkRootToPolicy();
+    }
+
+    private void registerNodeTypes() {
+        Session session = null;
+        try {
+            session = sessionFactory.getInternalSession();
+            final NodeTypeManager mgr = (NodeTypeManager) session.getWorkspace().getNodeTypeManager();
+            final URL cnd = XACMLWorkspaceInitializer.class.getResource("/cnd/xacml-policy.cnd");
+            final NodeTypeIterator nti = mgr.registerNodeTypes(cnd, true);
+            while (nti.hasNext()) {
+                final NodeType nt = nti.nextNodeType();
+                LOGGER.debug("registered node type: {}", nt.getName());
+            }
+
+            session.save();
+            LOGGER.debug("Registered XACML policy node types");
+        } catch (final RepositoryException | IOException e) {
+            throw new Error("Cannot register XACML policy node types", e);
+        } finally {
+            if (session != null) {
+                session.logout();
+            }
+        }
+    }
+
+    /**
+     * Create nodes for the default XACML policy set. Policies are created at paths according to their IDs.
+     */
+    private void loadInitialPolicies() {
+        Session session = null;
+        try {
+            session = sessionFactory.getInternalSession();
+            for (final File p : initialPoliciesDirectory.listFiles()) {
+                final String id = PolicyUtil.getID(FileUtils.openInputStream(p));
+                final String repoPath = PolicyUtil.getPathForId(id);
+                final Datastream d = datastreamService.createDatastream(session,
+                                                                        repoPath,
+                                                                        "application/xml",
+                                                                        p.getName(),
+                                                                        new FileInputStream(p));
+                LOGGER.info("Add initial policy {} at {}", p.getAbsolutePath(), d.getPath());
+            }
+            session.save();
+        } catch (final RepositoryException | InvalidChecksumException | IOException e) {
+            throw new Error("Cannot create default root policies", e);
+        } finally {
+            if (session != null) {
+                session.logout();
+            }
+        }
     }
 
     /**
@@ -117,52 +157,6 @@ public class XACMLWorkspaceInitializer {
             session.save();
         } catch (final RepositoryException | IOException e) {
             throw new Error("Cannot configure root mix-in or policy", e);
-        } finally {
-            if (session != null) {
-                session.logout();
-            }
-        }
-    }
-
-    /**
-     * Create nodes for the default XACML policy set. Policies are created at paths according to their IDs.
-     */
-    private void loadInitialPolicies() {
-        Session session;
-        try {
-            session = sessionFactory.getInternalSession();
-            // final FedoraResource policies = nodeService.findOrCreateObject(session, "/policies");
-            for (final File p : initialPoliciesDirectory.listFiles()) {
-                // final String baseName = FilenameUtils.getBaseName(p.getName());
-                final String id = PolicyUtil.getID(FileUtils.openInputStream(p));
-                final String repoPath = PolicyUtil.getPathForId(id);
-                final Datastream d =
-                        datastreamService.createDatastream(session, repoPath, "application/xml", p
-                        .getAbsolutePath(),
-                        new FileInputStream(p));
-                LOGGER.info("Add initial policy {} at {}", p.getAbsolutePath(), d.getPath());
-            }
-            session.save();
-        } catch (final RepositoryException | InvalidChecksumException | IOException e) {
-            throw new Error("Cannot create default root policies", e);
-        }
-    }
-
-    private void registerNodeTypes() {
-        Session session = null;
-        try {
-            session = sessionFactory.getInternalSession();
-            final NodeTypeManager mgr = (NodeTypeManager) session.getWorkspace().getNodeTypeManager();
-            final URL cnd = XACMLWorkspaceInitializer.class.getResource("/cnd/xacml-policy.cnd");
-            final NodeTypeIterator nti = mgr.registerNodeTypes(cnd, true);
-            while (nti.hasNext()) {
-                final NodeType nt = nti.nextNodeType();
-                LOGGER.debug("registered node type: {}", nt.getName());
-            }
-            session.save();
-            LOGGER.debug("Registered XACML policy node types");
-        } catch (final RepositoryException | IOException e) {
-            throw new Error("Cannot register XACML policy node types", e);
         } finally {
             if (session != null) {
                 session.logout();

@@ -54,41 +54,6 @@ public class FedoraEvaluationCtxBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(FedoraEvaluationCtxBuilder.class);
 
     /**
-     * Create an evaluation context builder.
-     */
-    public FedoraEvaluationCtxBuilder() {
-
-    }
-
-    /**
-     * Build the evaluation context.
-     *
-     * @return the evaluation context
-     */
-    public final EvaluationCtx build() {
-        final RequestCtx rc =
-                new RequestCtx(subjectList, resourceList, actionList,
-                        environmentList);
-        if (LOGGER.isDebugEnabled()) {
-            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-                rc.encode(baos);
-                LOGGER.debug("RequestCtx dump:\n{}", baos.toString("utf-8"));
-            } catch (final IOException e) {
-                LOGGER.error("Cannot print request context", e);
-            }
-        }
-        final AttributeFinder af = new AttributeFinder();
-        af.setModules(attributeFinderModules);
-        try {
-            final BasicEvaluationCtx result = new BasicEvaluationCtx(rc, af);
-            // result.setResourceId(resourceId);
-            return result;
-        } catch (final ParsingException e) {
-            throw new Error(e);
-        }
-    }
-
-    /**
      * The list of other subjects.
      */
     private final List<Subject> subjectList = new ArrayList<Subject>();
@@ -119,13 +84,39 @@ public class FedoraEvaluationCtxBuilder {
     private final List<AttributeFinderModule> attributeFinderModules = new ArrayList<AttributeFinderModule>();
 
     /**
+     * Build the evaluation context.
+     *
+     * @return the evaluation context
+     */
+    public final EvaluationCtx build() {
+        final RequestCtx rc = new RequestCtx(subjectList, resourceList, actionList, environmentList);
+        if (LOGGER.isDebugEnabled()) {
+            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                rc.encode(baos);
+                LOGGER.debug("RequestCtx dump:\n{}", baos.toString("utf-8"));
+            } catch (final IOException e) {
+                LOGGER.info("Cannot print request context", e);
+            }
+        }
+
+        final AttributeFinder af = new AttributeFinder();
+        af.setModules(attributeFinderModules);
+        try {
+            final BasicEvaluationCtx result = new BasicEvaluationCtx(rc, af);
+            // result.setResourceId(resourceId);
+            return result;
+        } catch (final ParsingException e) {
+            throw new Error(e);
+        }
+    }
+
+    /**
      * Add a finder module to context.
      *
      * @param module module to add
      * @return the builder
      */
-    public final FedoraEvaluationCtxBuilder addFinderModule(
-            final AttributeFinderModule module) {
+    public final FedoraEvaluationCtxBuilder addFinderModule(final AttributeFinderModule module) {
         this.attributeFinderModules.add(module);
         return this;
     }
@@ -137,13 +128,11 @@ public class FedoraEvaluationCtxBuilder {
      * @param roles the effective roles for user, or null
      * @return the builder
      */
-    public final FedoraEvaluationCtxBuilder addSubject(final String username,
-            final Set<String> roles) {
-        final List<Attribute> subjectAttrs = new ArrayList<Attribute>();
+    public final FedoraEvaluationCtxBuilder addSubject(final String username, final Set<String> roles) {
+        final List<Attribute> subjectAttrs = new ArrayList<>();
         if (username != null) {
             final StringAttribute v = new StringAttribute(username);
-            final Attribute sid =
-                new Attribute(ATTRIBUTEID_SUBJECT_ID, null, null, v);
+            final Attribute sid = new Attribute(ATTRIBUTEID_SUBJECT_ID, null, null, v);
             subjectAttrs.add(sid);
         }
 
@@ -156,7 +145,6 @@ public class FedoraEvaluationCtxBuilder {
         }
 
         this.subjectList.add(new Subject(subjectAttrs));
-
         return this;
     }
 
@@ -167,9 +155,7 @@ public class FedoraEvaluationCtxBuilder {
      * @return the builder
      */
     public final FedoraEvaluationCtxBuilder addResourceID(final String rawModeShapePath) {
-        final Attribute rid =
-                new Attribute(ATTRIBUTEID_RESOURCE_ID, null, null,
-                        new StringAttribute(rawModeShapePath));
+        final Attribute rid = new Attribute(ATTRIBUTEID_RESOURCE_ID, null, null, new StringAttribute(rawModeShapePath));
         resourceList.add(rid);
         return this;
     }
@@ -181,9 +167,7 @@ public class FedoraEvaluationCtxBuilder {
      * @return the builder
      */
     public final FedoraEvaluationCtxBuilder addWorkspace(final String name) {
-        final Attribute wid =
-                new Attribute(ATTRIBUTEID_RESOURCE_WORKSPACE, null, null,
-                        new StringAttribute(name));
+        final Attribute wid = new Attribute(ATTRIBUTEID_RESOURCE_WORKSPACE, null, null, new StringAttribute(name));
         resourceList.add(wid);
         return this;
     }
@@ -197,9 +181,7 @@ public class FedoraEvaluationCtxBuilder {
     public final FedoraEvaluationCtxBuilder addActions(final String[] actions) {
         if (actions != null) {
             for (final String action : actions) {
-                final Attribute a =
-                    new Attribute(ATTRIBUTEID_ACTION_ID, null, null,
-                            new StringAttribute(action));
+                final Attribute a = new Attribute(ATTRIBUTEID_ACTION_ID, null, null, new StringAttribute(action));
                 actionList.add(a);
                 // if ("remove".equals(action)) {
                 // final Attribute scope =
@@ -216,8 +198,10 @@ public class FedoraEvaluationCtxBuilder {
      * @param remoteAddr
      */
     public void addOriginalRequestIP(final String remoteAddr) {
-        final Attribute a =
-                new Attribute(ATTRIBUTEID_ENVIRONMENT_ORIGINAL_IP_ADDRESS, null, null, new StringAttribute(remoteAddr));
+        final Attribute a = new Attribute(ATTRIBUTEID_ENVIRONMENT_ORIGINAL_IP_ADDRESS,
+                                          null,
+                                          null,
+                                          new StringAttribute(remoteAddr));
         actionList.add(a);
     }
 

@@ -96,7 +96,7 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
     /**
      * Retrieves the policy from the given policy node
      *
-     * @param policyNode
+     * @param policyDatastream
      * @return
      */
     private AbstractPolicy getPolicy(final Datastream policyDatastream) {
@@ -106,7 +106,7 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
     /**
      * Creates a new policy or policy set object from the given policy node
      *
-     * @param policyNode
+     * @param policyDatastream
      * @return
      */
     private AbstractPolicy loadPolicy(final Datastream policyDatastream) {
@@ -115,11 +115,10 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
             // create the factory
             final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setIgnoringComments(true);
-
-            DocumentBuilder db = null;
             factory.setNamespaceAware(true);
             factory.setValidating(false);
-            db = factory.newDocumentBuilder();
+
+            final DocumentBuilder db = factory.newDocumentBuilder();
 
             // Parse the policy content
             final Document doc = db.parse(policyDatastream.getContent());
@@ -154,9 +153,8 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
      */
     @Override
     public final PolicyFinderResult findPolicy(final EvaluationCtx context) {
-        final EvaluationResult ridEvalRes =
-                context.getResourceAttribute(URI.create("http://www.w3.org/2001/XMLSchema#string"),
-                        URIConstants.ATTRIBUTEID_RESOURCE_ID, null);
+        final EvaluationResult ridEvalRes = context.getResourceAttribute(
+                URI.create("http://www.w3.org/2001/XMLSchema#string"), URIConstants.ATTRIBUTEID_RESOURCE_ID, null);
         final AttributeValue resourceIdAttValue = ridEvalRes.getAttributeValue();
         String path = resourceIdAttValue.getValue().toString();
 
@@ -164,21 +162,22 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
             path = "/";
         }
 
-        Node nodeWithPolicy;
         try {
             final Session internalSession = sessionFactory.getInternalSession();
-            final Node node = PolicyUtil.getFirstRealNode(path, internalSession);
 
-            // Walk up the hierarchy to find the first node with a policy
-            // assigned
-            nodeWithPolicy = node;
+            // Walk up the hierarchy to find the first node with a policy assigned
+            Node nodeWithPolicy = PolicyUtil.getFirstRealNode(path, internalSession);
             while (nodeWithPolicy != null && !nodeWithPolicy.hasProperty(XACML_POLICY_PROPERTY)) {
                 nodeWithPolicy = nodeWithPolicy.getParent();
             }
 
+            // This should never happen, as PolicyUtil.getFirstRealNode() at least returns the root node.
+            if (null == nodeWithPolicy) {
+                return new PolicyFinderResult();
+            }
+
             final Property prop = nodeWithPolicy.getProperty(XACML_POLICY_PROPERTY);
-            final Datastream policyDatastream =
-                    datastreamService.asDatastream(prop.getNode());
+            final Datastream policyDatastream = datastreamService.asDatastream(prop.getNode());
 
             if (policyDatastream == null) {
                 return new PolicyFinderResult();
@@ -214,24 +213,24 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
      * org.jboss.security.xacml.sunxacml.PolicyMetaData)
      */
     @Override
-    public final PolicyFinderResult findPolicy(final URI idReference, final int type,
-            final VersionConstraints constraints, final PolicyMetaData parentMetaData) {
-
+    public final PolicyFinderResult findPolicy(final URI idReference,
+                                               final int type,
+                                               final VersionConstraints constraints,
+                                               final PolicyMetaData parentMetaData) {
         try {
             final String id = idReference.toString();
             if (!id.startsWith(POLICY_URI_PREFIX)) {
                 LOGGER.warn("Policy reference must begin with {}, but was {}", POLICY_URI_PREFIX, id);
                 return new PolicyFinderResult();
             }
+
             final String path = PolicyUtil.getPathForId(id);
-
             final Session internalSession = sessionFactory.getInternalSession();
-            final Datastream policyDatastream =
-                    datastreamService.getDatastream(internalSession, path);
-
+            final Datastream policyDatastream = datastreamService.getDatastream(internalSession, path);
             final AbstractPolicy policy = getPolicy(policyDatastream);
 
             return new PolicyFinderResult(policy);
+
         } catch (final RepositoryException e) {
             LOGGER.warn("Failed to retrieve a policy for " + idReference.toString(), e);
             return new PolicyFinderResult();
@@ -247,7 +246,6 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
     @Override
     public void init(final PolicyFinder finder) {
         this.finder = finder;
-
     }
 
 }

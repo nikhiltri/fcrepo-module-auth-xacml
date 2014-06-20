@@ -24,8 +24,8 @@
   <bean class="org.modeshape.jcr.JcrRepositoryFactory" />
   
   <bean class="org.fcrepo.auth.xacml.XACMLWorkspaceInitializer" init-method="init">
-    <property name="initialPoliciesDirectory" value="${fcrepo.xacml.initial.policies.dir:src/main/resources/policies}"/>
-    <property name="initialRootPolicyFile" value="${fcrepo.xacml.initial.root.policy.file:src/main/resources/policies/GlobalRolesPolicySet.xml}"/>
+    <constructor-arg value="${fcrepo.xacml.initial.policies.dir:src/main/resources/policies}"/>
+    <constructor-arg value="${fcrepo.xacml.initial.root.policy.file:src/main/resources/policies/GlobalRolesPolicySet.xml}"/>
   </bean>
 
   <bean id="connectionManager" class="org.apache.http.impl.conn.PoolingHttpClientConnectionManager"/>
