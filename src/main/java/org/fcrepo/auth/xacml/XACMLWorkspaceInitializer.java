@@ -25,7 +25,9 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.nodetype.NodeType;
 import javax.jcr.nodetype.NodeTypeIterator;
+import javax.jcr.nodetype.NodeTypeTemplate;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.FileUtils;
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.Datastream;
@@ -87,7 +89,10 @@ public class XACMLWorkspaceInitializer {
      * Initializes node types and default policies.
      */
     public void init() {
-        registerNodeTypes();
+        // Do not "registerNodeTypes" because the xacml-policy.cnd introduces a cyclical dependency with the main
+        //  fedora-node-types.cnd that causes an exception on repository restart.
+        // TODO: We can remove this dead code in the near future.
+        // registerNodeTypes();
         loadInitialPolicies();
         linkRootToPolicy();
     }
@@ -103,6 +108,18 @@ public class XACMLWorkspaceInitializer {
                 final NodeType nt = nti.nextNodeType();
                 LOGGER.debug("registered node type: {}", nt.getName());
             }
+
+            // Add "authz:xacmlAssignable" mixin to "fedora:resource" type
+            final NodeType nodeType = mgr.getNodeType("fedora:resource");
+            final NodeTypeTemplate nodeTypeTemplate = mgr.createNodeTypeTemplate(nodeType);
+            final String[] superTypes = nodeType.getDeclaredSupertypeNames();
+            final ImmutableList.Builder<String> listBuilder = ImmutableList.builder();
+            listBuilder.add(superTypes);
+            listBuilder.add("authz:xacmlAssignable");
+            final ImmutableList<String> newSuperTypes = listBuilder.build();
+            nodeTypeTemplate.setDeclaredSuperTypeNames(newSuperTypes.toArray(new String[newSuperTypes.size()]));
+
+            mgr.registerNodeType(nodeTypeTemplate, true);
 
             session.save();
             LOGGER.debug("Registered XACML policy node types");

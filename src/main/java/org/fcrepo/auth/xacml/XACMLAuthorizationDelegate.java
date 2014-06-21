@@ -202,6 +202,12 @@ public class XACMLAuthorizationDelegate extends AbstractRolesAuthorizationDelega
         // add the original IP address
         final HttpServletRequest request = (HttpServletRequest) session.getAttribute(FEDORA_SERVLET_REQUEST);
         builder.addOriginalRequestIP(request.getRemoteAddr());
+
+        // add user's groups
+        final Set<Principal> allGroups = (Set<Principal>) session.getAttribute(FEDORA_ALL_PRINCIPALS);
+        LOGGER.debug("effective groups: {}", allGroups);
+        builder.addGroups(user, allGroups);
+
         return builder.build();
     }
 

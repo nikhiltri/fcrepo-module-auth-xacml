@@ -20,10 +20,12 @@ import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_ENVIRONMENT_ORIGINA
 import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_RESOURCE_ID;
 import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_RESOURCE_WORKSPACE;
 import static org.fcrepo.auth.xacml.URIConstants.ATTRIBUTEID_SUBJECT_ID;
+import static org.fcrepo.auth.xacml.URIConstants.FCREPO_SUBJECT_GROUP;
 import static org.fcrepo.auth.xacml.URIConstants.FCREPO_SUBJECT_ROLE;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -203,6 +205,34 @@ public class FedoraEvaluationCtxBuilder {
                                           null,
                                           new StringAttribute(remoteAddr));
         actionList.add(a);
+    }
+
+    /**
+     * This method adds group attributes to the subject-set.
+     *
+     * @param user      for arg groups
+     * @param allGroups to be added to the subject-set
+     * @return this object
+     */
+    public FedoraEvaluationCtxBuilder addGroups(final Principal user, final Set<Principal> allGroups) {
+        LOGGER.trace("For user, {}, adding groups {}", user.getName(), allGroups);
+
+        if (null == user || null == allGroups || allGroups.isEmpty()) {
+            LOGGER.trace("Not adding any groups!");
+            return this;
+        }
+
+        final List<Attribute> subjectAttrs = new ArrayList<>();
+        for (final Principal group : allGroups) {
+            // Do not include the user principal in the group attributes.
+            if (!group.equals(user)) {
+                final StringAttribute groupAttr = new StringAttribute(group.getName());
+                final Attribute groupId = new Attribute(FCREPO_SUBJECT_GROUP, null, null, groupAttr);
+                subjectAttrs.add(groupId);
+            }
+        }
+        this.subjectList.add(new Subject(subjectAttrs));
+        return this;
     }
 
 }

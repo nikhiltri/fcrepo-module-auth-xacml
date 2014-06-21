@@ -33,9 +33,17 @@ public abstract class URIConstants {
     public static final URI ATTRIBUTEID_SUBJECT_ID = URI
             .create(XACMLConstants.ATTRIBUTEID_SUBJECT_ID);
 
+    /**
+     * Roles
+     */
     public static final String FCREPO_SUBJECT_ROLE_VALUE = "fcrepo-xacml:subject-role";
-
     public static final URI FCREPO_SUBJECT_ROLE = URI.create(FCREPO_SUBJECT_ROLE_VALUE);
+
+    /**
+     * Groups
+     */
+    public static final String FCREPO_SUBJECT_GROUP_VALUE = "fcrepo-xacml:subject-group";
+    public static final URI FCREPO_SUBJECT_GROUP = URI.create(FCREPO_SUBJECT_GROUP_VALUE);
 
     /**
      * ID of the action (ModeShape permission name).
