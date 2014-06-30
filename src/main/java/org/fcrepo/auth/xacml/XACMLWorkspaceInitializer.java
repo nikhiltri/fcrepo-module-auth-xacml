@@ -86,13 +86,25 @@ public class XACMLWorkspaceInitializer {
     }
 
     /**
-     * Initializes node types and default policies.
+     * Initializes default policies.
      */
     public void init() {
+        doInit(false);
+    }
+
+    /**
+     * Initializes node types and default policies - for Integration Tests!
+     */
+    public void initTest() {
+        doInit(true);
+    }
+
+    private void doInit(final boolean test) {
         // Do not "registerNodeTypes" because the xacml-policy.cnd introduces a cyclical dependency with the main
         //  fedora-node-types.cnd that causes an exception on repository restart.
-        // TODO: We can remove this dead code in the near future.
-        // registerNodeTypes();
+        if (test) {
+            registerNodeTypes();
+        }
         loadInitialPolicies();
         linkRootToPolicy();
     }
