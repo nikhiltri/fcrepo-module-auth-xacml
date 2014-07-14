@@ -25,7 +25,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Created by mohideen on 7/11/14.
+ * <p>
+ * PDPFactoryTest class.
+ * </p>
+ *
+ * @author mohideen
  */
 public class PDPFactoryTest {
 
@@ -34,8 +38,8 @@ public class PDPFactoryTest {
     @Before
     public void setUp() {
         pdpFactory = new PDPFactory();
-        FedoraPolicyFinderModule fedoraPolicyFinderModule = new FedoraPolicyFinderModule();
-        FedoraResourceFinderModule fedoraResourceFinderModule = new FedoraResourceFinderModule();
+        final FedoraPolicyFinderModule fedoraPolicyFinderModule = new FedoraPolicyFinderModule();
+        final FedoraResourceFinderModule fedoraResourceFinderModule = new FedoraResourceFinderModule();
         setField(pdpFactory, "fedoraPolicyFinderModule", fedoraPolicyFinderModule);
         setField(pdpFactory, "fedoraResourceFinderModule", fedoraResourceFinderModule);
     }
