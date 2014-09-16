@@ -33,6 +33,7 @@ import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.FedoraResource;
+import org.fcrepo.kernel.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.rdf.IdentifierTranslator;
 import org.fcrepo.kernel.impl.rdf.impl.DefaultIdentifierTranslator;
 import org.fcrepo.kernel.services.NodeService;
@@ -134,7 +135,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
         final Session session;
         try {
             session = sessionFactory.getInternalSession();
-        } catch (final RepositoryException e) {
+        } catch (final RepositoryRuntimeException e) {
             LOGGER.debug("Error getting session!");
             final Status status = new Status(singletonList(STATUS_PROCESSING_ERROR), "Error getting session");
             return new EvaluationResult(status);
@@ -174,7 +175,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
             path = resource.getPath();
             idTranslator = new DefaultIdentifierTranslator();
 
-        } catch (final RepositoryException e) {
+        } catch (final RepositoryRuntimeException e) {
             // If the object does not exist, it may be due to the action being "create"
             return new EvaluationResult(empty_bag);
         }
@@ -183,12 +184,22 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
 
         // Get the properties of the resource
         Model properties;
-        Resource graphNode;
         try {
             properties = resource.getTriples(idTranslator).asModel();
+
+        } catch (final RepositoryRuntimeException e) {
+            LOGGER.debug("Cannot retrieve any properties for [{}]:  {}", resourceId, e);
+            final Status status =
+                    new Status(singletonList(STATUS_PROCESSING_ERROR),
+                               "Error retrieving properties for [" + path + "]!");
+            return new EvaluationResult(status);
+        }
+
+        Resource graphNode;
+        try {
             graphNode = idTranslator.getSubject(resource.getPath());
         } catch (final RepositoryException e) {
-            LOGGER.debug("Cannot retrieve any properties for [{}]:  {}", resourceId, e);
+            LOGGER.debug("Cannot get subject for[{}]: {}", resource.getPath(), e);
             final Status status =
                     new Status(singletonList(STATUS_PROCESSING_ERROR),
                             "Error retrieving properties for [" + path + "]!");

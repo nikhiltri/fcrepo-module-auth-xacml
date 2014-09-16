@@ -30,6 +30,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.Datastream;
+import org.fcrepo.kernel.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.services.DatastreamService;
 import org.fcrepo.kernel.services.NodeService;
 import org.jboss.security.xacml.sunxacml.AbstractPolicy;
@@ -231,7 +232,7 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
 
             return new PolicyFinderResult(policy);
 
-        } catch (final RepositoryException e) {
+        } catch (final RepositoryRuntimeException e) {
             LOGGER.warn("Failed to retrieve a policy for " + idReference.toString(), e);
             return new PolicyFinderResult();
         }

@@ -34,6 +34,7 @@ import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.Datastream;
+import org.fcrepo.kernel.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.services.DatastreamService;
 
 import org.junit.Before;
@@ -130,9 +131,9 @@ public class XACMLWorkspaceInitializerTest {
         verify(mockNode).setProperty(eq("authz:policy"), any(Node.class));
     }
 
-    @Test(expected = Error.class)
+    @Test(expected = RepositoryRuntimeException.class)
     public void testInitInitialPoliciesException() throws Exception {
-        when(mockSessionFactory.getInternalSession()).thenThrow(new RepositoryException("expected"));
+        when(mockSessionFactory.getInternalSession()).thenThrow(new RepositoryRuntimeException("expected"));
 
         xacmlWI.init();
     }

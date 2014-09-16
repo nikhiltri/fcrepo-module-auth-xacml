@@ -30,12 +30,12 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import java.net.URI;
 import java.util.Set;
 
-import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.FedoraResource;
+import org.fcrepo.kernel.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.rdf.IdentifierTranslator;
 import org.fcrepo.kernel.services.NodeService;
 import org.fcrepo.kernel.utils.iterators.RdfStream;
@@ -197,7 +197,7 @@ public class TripleAttributeFinderModuleTest {
 
     @Test
     public void testFindAttributeInvalidSession() throws RepositoryException {
-        when(mockSessionFactory.getInternalSession()).thenThrow(new RepositoryException());
+        when(mockSessionFactory.getInternalSession()).thenThrow(new RepositoryRuntimeException("expected"));
         final EvaluationResult result = doFindAttribute("/{ns}path/{ns}to/{ns}resource");
         final String status = (String) result.getStatus().getCode().get(0);
         assertEquals("Evaluation status should be STATUS_PROCESSING_ERROR!", status,
@@ -235,7 +235,7 @@ public class TripleAttributeFinderModuleTest {
         final String[] actions = { "read" };
 
         when(mockNodeService.getObject(mockSession, resourceId)).thenReturn(mockFedoraResource);
-        when(mockFedoraResource.getPath()).thenThrow(new PathNotFoundException());
+        when(mockFedoraResource.getPath()).thenThrow(new RepositoryRuntimeException("expected"));
 
         final EvaluationResult result = doFindAttribute(resourceId, actions);
         final BagAttribute bag = (BagAttribute) result.getAttributeValue();
@@ -298,7 +298,7 @@ public class TripleAttributeFinderModuleTest {
 
         when(mockNodeService.getObject(mockSession, resourceId)).thenReturn(mockFedoraResource);
         when(mockFedoraResource.getTriples(any(IdentifierTranslator.class))).thenThrow(
-                new RepositoryException());
+                new RepositoryRuntimeException("expected"));
 
         final EvaluationResult result = doFindAttribute(resourceId, actions);
         final String status = (String) result.getStatus().getCode().get(0);
