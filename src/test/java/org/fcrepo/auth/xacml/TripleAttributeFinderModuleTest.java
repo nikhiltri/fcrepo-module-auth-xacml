@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -36,6 +37,7 @@ import javax.jcr.Session;
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.FedoraResource;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
+import org.fcrepo.kernel.impl.rdf.impl.PropertiesRdfContext;
 import org.fcrepo.kernel.rdf.IdentifierTranslator;
 import org.fcrepo.kernel.services.NodeService;
 import org.fcrepo.kernel.utils.iterators.RdfStream;
@@ -163,7 +165,8 @@ public class TripleAttributeFinderModuleTest {
         final String resourceId = "/{ns}path/{ns}to/{ns}resource";
 
         when(mockNodeService.getObject(mockSession, resourceId)).thenReturn(mockFedoraResource);
-        when(mockFedoraResource.getTriples(any(IdentifierTranslator.class))).thenReturn(mockRdfStream);
+        when(mockFedoraResource.getTriples(any(IdentifierTranslator.class), eq(PropertiesRdfContext.class))).thenReturn(
+                mockRdfStream);
         when(mockIdentifierTranslator.getSubject(any(String.class))).thenReturn(mockResource);
         when(mockFedoraResource.getPath()).thenReturn(resourceId);
         when(mockRdfStream.asModel()).thenReturn(mockModel);
@@ -297,7 +300,7 @@ public class TripleAttributeFinderModuleTest {
         final String[] actions = { "read" };
 
         when(mockNodeService.getObject(mockSession, resourceId)).thenReturn(mockFedoraResource);
-        when(mockFedoraResource.getTriples(any(IdentifierTranslator.class))).thenThrow(
+        when(mockFedoraResource.getTriples(any(IdentifierTranslator.class), eq(PropertiesRdfContext.class))).thenThrow(
                 new RepositoryRuntimeException("expected"));
 
         final EvaluationResult result = doFindAttribute(resourceId, actions);

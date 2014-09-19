@@ -34,6 +34,7 @@ import javax.jcr.Session;
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.FedoraResource;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
+import org.fcrepo.kernel.impl.rdf.impl.PropertiesRdfContext;
 import org.fcrepo.kernel.rdf.IdentifierTranslator;
 import org.fcrepo.kernel.impl.rdf.impl.DefaultIdentifierTranslator;
 import org.fcrepo.kernel.services.NodeService;
@@ -185,7 +186,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
         // Get the properties of the resource
         Model properties;
         try {
-            properties = resource.getTriples(idTranslator).asModel();
+            properties = resource.getTriples(idTranslator, PropertiesRdfContext.class).asModel();
 
         } catch (final RepositoryRuntimeException e) {
             LOGGER.debug("Cannot retrieve any properties for [{}]:  {}", resourceId, e);
