@@ -21,7 +21,7 @@
     <property name="fad" ref="fad"/>
   </bean>
 
-  <bean class="org.modeshape.jcr.JcrRepositoryFactory" />
+    <bean class="org.modeshape.jcr.ModeShapeEngine" init-method="start"/>
   
   <bean class="org.fcrepo.auth.xacml.XACMLWorkspaceInitializer" init-method="initTest">
     <constructor-arg value="${fcrepo.xacml.initial.policies.dir:src/main/resources/policies}"/>
