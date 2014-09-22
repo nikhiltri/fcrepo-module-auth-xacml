@@ -26,7 +26,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.io.File;
-import java.io.FileInputStream;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -34,12 +33,12 @@ import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.Datastream;
+import org.fcrepo.kernel.FedoraBinary;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.services.DatastreamService;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 
 /**
@@ -68,15 +67,16 @@ public class XACMLWorkspaceInitializerTest {
     @Mock
     Datastream mockDatastream;
 
+    @Mock
+    FedoraBinary mockBinary;
+
     @Before
     public void setUp() throws Exception {
         initMocks(this);
 
         when(mockSessionFactory.getInternalSession()).thenReturn(mockSession);
         when(mockSession.getRootNode()).thenReturn(mockNode);
-        when(
-                mockDsService.createDatastream(eq(mockSession), anyString(), eq("application/xml"), anyString(),
-                        Matchers.any(FileInputStream.class))).thenReturn(mockDatastream);
+        when(mockDsService.findOrCreateDatastream(eq(mockSession), anyString())).thenReturn(mockDatastream);
         when(mockDatastream.getPath()).thenReturn("/dummy/test/path");
 
         final File initialPoliciesDirectory = policiesDirectory();
@@ -118,14 +118,12 @@ public class XACMLWorkspaceInitializerTest {
 
     @Test
     public void testInit() throws Exception {
+        when(mockDsService.getBinary(eq(mockSession), anyString())).thenReturn(mockBinary);
+
         xacmlWI.init();
 
         final int expectedFiles = policiesDirectory().list().length;
-        verify(mockDsService, times(expectedFiles)).createDatastream(eq(mockSession),
-                                                                     anyString(),
-                                                                     eq("application/xml"),
-                                                                     anyString(),
-                                                                     Matchers.any(FileInputStream.class));
+        verify(mockDsService, times(expectedFiles)).getBinary(eq(mockSession), anyString());
 
         verify(mockNode).addMixin("authz:xacmlAssignable");
         verify(mockNode).setProperty(eq("authz:policy"), any(Node.class));
@@ -140,6 +138,7 @@ public class XACMLWorkspaceInitializerTest {
 
     @Test(expected = Error.class)
     public void testInitLinkRootToPolicyException() throws Exception {
+        when(mockDsService.getBinary(eq(mockSession), anyString())).thenReturn(mockBinary);
         when(mockSession.getRootNode()).thenThrow(new RepositoryException("expected"));
 
         xacmlWI.init();

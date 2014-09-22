@@ -30,6 +30,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.Datastream;
+import org.fcrepo.kernel.FedoraBinary;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.services.DatastreamService;
 import org.fcrepo.kernel.services.NodeService;
@@ -101,16 +102,16 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
      * @return
      */
     private AbstractPolicy getPolicy(final Datastream policyDatastream) {
-        return loadPolicy(policyDatastream);
+        return loadPolicy(policyDatastream.getBinary());
     }
 
     /**
      * Creates a new policy or policy set object from the given policy node
      *
-     * @param policyDatastream
+     * @param policyBinary
      * @return
      */
-    private AbstractPolicy loadPolicy(final Datastream policyDatastream) {
+    private AbstractPolicy loadPolicy(final FedoraBinary policyBinary) {
         String policyName = "unparsed";
         try {
             // create the factory
@@ -122,7 +123,7 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
             final DocumentBuilder db = factory.newDocumentBuilder();
 
             // Parse the policy content
-            final Document doc = db.parse(policyDatastream.getContent());
+            final Document doc = db.parse(policyBinary.getContent());
 
             // handle the policy, if it's a known type
             final Element root = doc.getDocumentElement();
@@ -227,7 +228,7 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
 
             final String path = PolicyUtil.getPathForId(id);
             final Session internalSession = sessionFactory.getInternalSession();
-            final Datastream policyDatastream = datastreamService.getDatastream(internalSession, path);
+            final Datastream policyDatastream = datastreamService.findOrCreateDatastream(internalSession, path);
             final AbstractPolicy policy = getPolicy(policyDatastream);
 
             return new PolicyFinderResult(policy);

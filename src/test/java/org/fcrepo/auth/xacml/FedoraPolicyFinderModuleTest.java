@@ -40,6 +40,7 @@ import javax.jcr.Session;
 
 import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.Datastream;
+import org.fcrepo.kernel.FedoraBinary;
 import org.fcrepo.kernel.services.DatastreamService;
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
 import org.jboss.security.xacml.sunxacml.PolicyReference;
@@ -78,6 +79,9 @@ public class FedoraPolicyFinderModuleTest {
 
     @Mock
     private Datastream mockPolicyDs;
+
+    @Mock
+    private FedoraBinary mockBinary;
 
     @Mock
     private DatastreamService mockDsService;
@@ -134,7 +138,8 @@ public class FedoraPolicyFinderModuleTest {
         when(mockNode.hasProperty(eq(XACML_POLICY_PROPERTY))).thenReturn(true);
         when(mockNode.getProperty(eq(XACML_POLICY_PROPERTY))).thenReturn(mockPolicyProperty);
 
-        when(mockPolicyDs.getContent()).thenReturn(this.getClass().getResourceAsStream("/xacml/testPolicy.xml"));
+        when(mockPolicyDs.getBinary()).thenReturn(mockBinary);
+        when(mockBinary.getContent()).thenReturn(this.getClass().getResourceAsStream("/xacml/testPolicy.xml"));
 
         final FedoraEvaluationCtxBuilder ctxBuilder = new FedoraEvaluationCtxBuilder();
         ctxBuilder.addResourceID("/{}myPath");
@@ -156,8 +161,9 @@ public class FedoraPolicyFinderModuleTest {
         final String idPath = POLICY_URI_PREFIX + policyPath;
         final URI idReference = new URI(idPath);
 
-        when(mockPolicyDs.getContent()).thenReturn(this.getClass().getResourceAsStream("/xacml/testPolicy.xml"));
-        when(mockDsService.getDatastream(any(Session.class), eq(policyPath))).thenReturn(mockPolicyDs);
+        when(mockPolicyDs.getBinary()).thenReturn(mockBinary);
+        when(mockBinary.getContent()).thenReturn(this.getClass().getResourceAsStream("/xacml/testPolicy.xml"));
+        when(mockDsService.findOrCreateDatastream(any(Session.class), eq(policyPath))).thenReturn(mockPolicyDs);
 
         final PolicyFinderResult result = finderModule.findPolicy(idReference, 0, null, null);
 
@@ -172,14 +178,17 @@ public class FedoraPolicyFinderModuleTest {
         when(mockNode.hasProperty(eq(XACML_POLICY_PROPERTY))).thenReturn(true);
         when(mockNode.getProperty(eq(XACML_POLICY_PROPERTY))).thenReturn(mockPolicyProperty);
 
-        when(mockPolicyDs.getContent())
+        when(mockPolicyDs.getBinary()).thenReturn(mockBinary);
+        when(mockBinary.getContent())
         .thenReturn(this.getClass().getResourceAsStream("/xacml/adminRolePolicySet.xml"));
 
         final String referencedId = "fcrepo:policies/AdminPermissionPolicySet";
         final Datastream referencedPolicyDs = mock(Datastream.class);
-        when(referencedPolicyDs.getContent()).thenReturn(
+        final FedoraBinary referencedPolicyBinary = mock(FedoraBinary.class);
+        when(referencedPolicyDs.getBinary()).thenReturn(referencedPolicyBinary);
+        when(referencedPolicyBinary.getContent()).thenReturn(
                 this.getClass().getResourceAsStream("/xacml/adminPermissionPolicySet.xml"));
-        when(mockDsService.getDatastream(any(Session.class), eq(referencedId))).thenReturn(referencedPolicyDs);
+        when(mockDsService.findOrCreateDatastream(any(Session.class), eq(referencedId))).thenReturn(referencedPolicyDs);
 
         final FedoraEvaluationCtxBuilder ctxBuilder = new FedoraEvaluationCtxBuilder();
         ctxBuilder.addResourceID("/{}myPath");
