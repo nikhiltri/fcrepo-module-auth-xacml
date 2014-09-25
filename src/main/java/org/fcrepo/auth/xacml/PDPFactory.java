@@ -50,7 +50,7 @@ public class PDPFactory {
      * @see org.springframework.beans.factory.FactoryBean#getObject()
      * @return the PDP
      */
-    public final PDP makePDP() {
+    public PDP makePDP() {
         final PolicyFinder policyFinder = new PolicyFinder();
         policyFinder.setModules(Collections.singleton(fedoraPolicyFinderModule));
 

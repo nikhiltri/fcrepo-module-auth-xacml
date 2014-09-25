@@ -37,20 +37,14 @@ import org.jboss.security.xacml.sunxacml.ctx.ResponseCtx;
 import org.jboss.security.xacml.sunxacml.ctx.Result;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.modeshape.jcr.api.Session;
 import org.modeshape.jcr.api.Workspace;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * @author Andrew Woods
  *         Date: 5/9/14
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({PDPFactory.class})
 public class XACMLAuthorizationDelegateTest {
 
 
@@ -62,6 +56,7 @@ public class XACMLAuthorizationDelegateTest {
     @Mock
     private FedoraResourceFinderModule mockFedoraRFM;
 
+    @Mock
     private PDPFactory mockPdpFactory;
 
     @Mock
@@ -94,7 +89,8 @@ public class XACMLAuthorizationDelegateTest {
     @Before
     public void setUp() throws Exception {
         initMocks(this);
-        mockPdpFactory = PowerMockito.mock(PDPFactory.class);
+        setField(mockPdpFactory, "fedoraPolicyFinderModule", mockFedoraPFM);
+        setField(mockPdpFactory, "fedoraResourceFinderModule", mockFedoraRFM);
         when(mockPdpFactory.makePDP()).thenReturn(mockPdp);
         when(mockPdp.evaluate(any(EvaluationCtx.class))).thenReturn(mockResponseCtx);
         when(mockResponseCtx.getResults()).thenReturn(getFakeResultSet());
