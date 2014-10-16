@@ -32,7 +32,7 @@ import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.Datastream;
 import org.fcrepo.kernel.FedoraBinary;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
-import org.fcrepo.kernel.services.DatastreamService;
+import org.fcrepo.kernel.services.BinaryService;
 import org.fcrepo.kernel.services.NodeService;
 import org.jboss.security.xacml.sunxacml.AbstractPolicy;
 import org.jboss.security.xacml.sunxacml.EvaluationCtx;
@@ -68,7 +68,7 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
     private SessionFactory sessionFactory;
 
     @Autowired
-    private DatastreamService datastreamService;
+    private BinaryService binaryService;
 
     @Autowired
     private NodeService nodeService;
@@ -93,16 +93,6 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
     @Override
     public final boolean isIdReferenceSupported() {
         return true;
-    }
-
-    /**
-     * Retrieves the policy from the given policy node
-     *
-     * @param policyDatastream
-     * @return
-     */
-    private AbstractPolicy getPolicy(final Datastream policyDatastream) {
-        return loadPolicy(policyDatastream.getBinary());
     }
 
     /**
@@ -179,13 +169,13 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
             }
 
             final Property prop = nodeWithPolicy.getProperty(XACML_POLICY_PROPERTY);
-            final Datastream policyDatastream = datastreamService.asDatastream(prop.getNode());
+            final FedoraBinary policyBinary = binaryService.asBinary(prop.getNode());
 
-            if (policyDatastream == null) {
+            if (policyBinary == null) {
                 return new PolicyFinderResult();
             }
 
-            final AbstractPolicy policy = getPolicy(policyDatastream);
+            final AbstractPolicy policy = loadPolicy(policyBinary);
 
             // Evaluate if the policy targets match the current context
             final MatchResult match = policy.match(context);
@@ -228,8 +218,8 @@ public class FedoraPolicyFinderModule extends PolicyFinderModule {
 
             final String path = PolicyUtil.getPathForId(id);
             final Session internalSession = sessionFactory.getInternalSession();
-            final Datastream policyDatastream = datastreamService.findOrCreateDatastream(internalSession, path);
-            final AbstractPolicy policy = getPolicy(policyDatastream);
+            final FedoraBinary policyBinary = binaryService.findOrCreateBinary(internalSession, path);
+            final AbstractPolicy policy = loadPolicy(policyBinary);
 
             return new PolicyFinderResult(policy);
 

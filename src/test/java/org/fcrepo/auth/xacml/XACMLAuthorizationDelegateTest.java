@@ -158,8 +158,8 @@ public class XACMLAuthorizationDelegateTest {
         return fakeActions;
     }
 
-    private Set getFakeRoles() {
-        final Set<String> fakeRoles = new HashSet();
+    private Set<String> getFakeRoles() {
+        final Set<String> fakeRoles = new HashSet<String>();
         fakeRoles.add("fakeRole1");
         fakeRoles.add("fakeRole2");
         return fakeRoles;

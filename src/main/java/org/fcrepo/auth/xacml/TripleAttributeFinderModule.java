@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
@@ -35,7 +36,7 @@ import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.FedoraResource;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
 import org.fcrepo.kernel.impl.rdf.impl.PropertiesRdfContext;
-import org.fcrepo.kernel.rdf.IdentifierTranslator;
+import org.fcrepo.kernel.identifiers.IdentifierConverter;
 import org.fcrepo.kernel.impl.rdf.impl.DefaultIdentifierTranslator;
 import org.fcrepo.kernel.services.NodeService;
 
@@ -69,7 +70,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
 
     private static BagAttribute empty_bag;
 
-    private static IdentifierTranslator idTranslator;
+    private static IdentifierConverter<Resource,Node> idTranslator;
 
     /**
      * Fedora's ModeShape session factory.
@@ -174,8 +175,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
                 return new EvaluationResult(empty_bag);
             }
             path = resource.getPath();
-            idTranslator = new DefaultIdentifierTranslator();
-
+            idTranslator = new DefaultIdentifierTranslator(session);
         } catch (final RepositoryRuntimeException e) {
             // If the object does not exist, it may be due to the action being "create"
             return new EvaluationResult(empty_bag);
@@ -197,15 +197,7 @@ public class TripleAttributeFinderModule extends AttributeFinderModule {
         }
 
         Resource graphNode;
-        try {
-            graphNode = idTranslator.getSubject(resource.getPath());
-        } catch (final RepositoryException e) {
-            LOGGER.debug("Cannot get subject for[{}]: {}", resource.getPath(), e);
-            final Status status =
-                    new Status(singletonList(STATUS_PROCESSING_ERROR),
-                            "Error retrieving properties for [" + path + "]!");
-            return new EvaluationResult(status);
-        }
+        graphNode = idTranslator.toDomain(resource.getPath());
 
         LOGGER.debug("Looking for properties on graph node: {}", graphNode.getURI());
 

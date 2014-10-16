@@ -35,7 +35,7 @@ import org.fcrepo.http.commons.session.SessionFactory;
 import org.fcrepo.kernel.Datastream;
 import org.fcrepo.kernel.FedoraBinary;
 import org.fcrepo.kernel.exception.RepositoryRuntimeException;
-import org.fcrepo.kernel.services.DatastreamService;
+import org.fcrepo.kernel.services.BinaryService;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -62,10 +62,7 @@ public class XACMLWorkspaceInitializerTest {
     private Node mockNode;
 
     @Mock
-    private DatastreamService mockDsService;
-
-    @Mock
-    Datastream mockDatastream;
+    private BinaryService mockBinaryService;
 
     @Mock
     FedoraBinary mockBinary;
@@ -76,15 +73,15 @@ public class XACMLWorkspaceInitializerTest {
 
         when(mockSessionFactory.getInternalSession()).thenReturn(mockSession);
         when(mockSession.getRootNode()).thenReturn(mockNode);
-        when(mockDsService.findOrCreateDatastream(eq(mockSession), anyString())).thenReturn(mockDatastream);
-        when(mockDatastream.getPath()).thenReturn("/dummy/test/path");
+        when(mockBinaryService.findOrCreateBinary(eq(mockSession), anyString())).thenReturn(mockBinary);
+        when(mockBinary.getPath()).thenReturn("/dummy/test/path");
 
         final File initialPoliciesDirectory = policiesDirectory();
         final File initialRootPolicyFile = rootPolicyFile();
         xacmlWI = new XACMLWorkspaceInitializer(initialPoliciesDirectory, initialRootPolicyFile);
 
         setField(xacmlWI, "sessionFactory", mockSessionFactory);
-        setField(xacmlWI, "datastreamService", mockDsService);
+        setField(xacmlWI, "binaryService", mockBinaryService);
     }
 
     private File policiesDirectory() {
@@ -118,12 +115,9 @@ public class XACMLWorkspaceInitializerTest {
 
     @Test
     public void testInit() throws Exception {
-        when(mockDsService.getBinary(eq(mockSession), anyString())).thenReturn(mockBinary);
-
         xacmlWI.init();
 
         final int expectedFiles = policiesDirectory().list().length;
-        verify(mockDsService, times(expectedFiles)).getBinary(eq(mockSession), anyString());
 
         verify(mockNode).addMixin("authz:xacmlAssignable");
         verify(mockNode).setProperty(eq("authz:policy"), any(Node.class));
@@ -138,7 +132,6 @@ public class XACMLWorkspaceInitializerTest {
 
     @Test(expected = Error.class)
     public void testInitLinkRootToPolicyException() throws Exception {
-        when(mockDsService.getBinary(eq(mockSession), anyString())).thenReturn(mockBinary);
         when(mockSession.getRootNode()).thenThrow(new RepositoryException("expected"));
 
         xacmlWI.init();
